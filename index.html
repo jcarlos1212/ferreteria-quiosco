@@ -430,13 +430,32 @@
             document.getElementById(screenId).classList.add('active');
         }
 
-        function startSession() {
-            const nameInput = document.getElementById('clientName').value.trim();
-            if (!nameInput) { alert('Por favor ingresa tu nombre'); return; }
-            clientName = nameInput;
-            document.getElementById('greetingText').innerHTML = 
-                `¡Hola <strong>${clientName}</strong>! Soy tu asistente virtual.<br>Por favor elige una de las opciones y te ayudaré.`;
-            showScreen('screen-menu');
+       function startSession() {
+    const nameInput = document.getElementById('clientName').value.trim();
+    if (!nameInput) { alert('Por favor ingresa tu nombre'); return; }
+    clientName = nameInput;
+    document.getElementById('greetingText').innerHTML = 
+        `¡Hola <strong>${clientName}</strong>! Soy tu asistente virtual.<br>Por favor elige una de las opciones y te ayudaré.`;
+    showScreen('screen-menu');
+    
+    // Saludo por voz automático
+    setTimeout(() => {
+        const saludo = `¡Hola ${clientName}! Soy tu asistente virtual. Por favor elige una de las opciones y te ayudaré.`;
+        const utterance = new SpeechSynthesisUtterance(saludo);
+        utterance.lang = 'es-ES';
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        
+        // Intentar usar una voz en español si está disponible
+        const voces = window.speechSynthesis.getVoices();
+        const vozEspanol = voces.find(v => v.lang.includes('es'));
+        if (vozEspanol) {
+            utterance.voice = vozEspanol;
+        }
+        
+        window.speechSynthesis.speak(utterance);
+    }, 500);
+}
         }
 
         function endSession() {
