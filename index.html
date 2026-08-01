@@ -242,9 +242,7 @@
             font-size: 18px;
             font-weight: bold;
         }
-        .qty-btn:hover {
-            background: #2a5298;
-        }
+        .qty-btn:hover { background: #2a5298; }
         .qty-display {
             font-weight: 600;
             min-width: 30px;
@@ -374,7 +372,7 @@
                 <div id="responseContent"></div>
                 <div class="response-actions" id="responseActions" style="display: none;">
                     <button class="action-btn primary" onclick="speakResponse()"> Escuchar</button>
-                    <button class="action-btn secondary" onclick="printQuote()">️ Imprimir</button>
+                    <button class="action-btn secondary" onclick="printQuote()">🖨️ Imprimir</button>
                 </div>
             </div>
             <div class="speaking-indicator" id="speakingIndicator">
@@ -386,11 +384,11 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN DE SUPABASE
+        // CONFIGURACIÓN DE SUPABASE (variable renombrada a db)
         // ============================================
         const SUPABASE_URL = 'https://pdbagplntrspmvyzpcb.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_BKYwkAVJWQeUZguTOaO6mw_eDJHCSAn';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentModule = '';
         let currentResponse = '';
@@ -486,7 +484,7 @@
             productQuantities = {};
             try {
                 console.log('🔎 Buscando:', query);
-                const { data, error } = await supabase
+                const { data, error } = await db
                     .from('productos')
                     .select('*')
                     .ilike('nombre', `%${query}%`)
@@ -616,7 +614,7 @@
 
             try {
                 // Guardar venta en Supabase
-                const { data: ventaData, error: ventaError } = await supabase
+                const { data: ventaData, error: ventaError } = await db
                     .from('ventas')
                     .insert([{
                         numero_venta: saleNumber,
@@ -629,12 +627,11 @@
                     }]);
                 
                 if (ventaError) throw ventaError;
-                
                 console.log('✅ Venta guardada:', ventaData);
                 
                 // Actualizar stock de cada producto
                 for (const item of cart) {
-                    const { data: productoData, error: productoError } = await supabase
+                    const { data: productoData, error: productoError } = await db
                         .from('productos')
                         .select('stock')
                         .eq('nombre', item.name)
@@ -647,7 +644,7 @@
                     
                     const nuevoStock = productoData.stock - item.qty;
                     
-                    const { error: updateError } = await supabase
+                    const { error: updateError } = await db
                         .from('productos')
                         .update({ stock: nuevoStock })
                         .eq('nombre', item.name);
@@ -658,9 +655,8 @@
                         console.log(`✅ Stock actualizado: ${item.name} → ${nuevoStock}`);
                     }
                 }
-                
             } catch (error) {
-                console.error(' Error guardando venta:', error);
+                console.error('❌ Error guardando venta:', error);
             }
         }
 
@@ -724,8 +720,7 @@
             responseActions.style.display = 'none';
             sendBtn.disabled = true;
             try {
-                // Buscar productos relacionados
-                const { data: productos, error } = await supabase
+                const { data: productos, error } = await db
                     .from('productos')
                     .select('*')
                     .ilike('nombre', `%${question}%`)
@@ -776,7 +771,7 @@
             const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
             const numeroCotizacion = 'COT-' + Date.now().toString().slice(-6);
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`<!DOCTYPE html><html><head><title>Cotización ${numeroCotizacion}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,sans-serif;padding:40px;max-width:800px;margin:0 auto;background:white;color:#333}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1e3c72;padding-bottom:20px;margin-bottom:30px}.logo-section{display:flex;align-items:center;gap:20px}.logo{width:80px;height:80px;background:#1e3c72;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:32px;font-weight:bold}.company-info h1{color:#1e3c72;font-size:28px;margin-bottom:5px}.company-info p{color:#666;font-size:14px}.quote-info{text-align:right}.quote-info h2{color:#1e3c72;font-size:28px;margin-bottom:10px;font-weight:bold}.quote-info p{color:#666;font-size:14px;margin-bottom:5px}.client-section{background:#f8f9fa;padding:15px 20px;border-radius:8px;margin-bottom:30px;border-left:4px solid #1e3c72}.client-section h3{color:#1e3c72;margin-bottom:8px;font-size:16px}.client-section p{color:#666;font-size:14px}.content{padding:20px;line-height:1.6}.footer{margin-top:40px;padding-top:20px;border-top:2px solid #1e3c72;display:flex;justify-content:space-between;align-items:flex-end}.contact-info{display:flex;flex-direction:column;gap:8px}.contact-info span{color:#666;font-size:14px}@media print{body{padding:20px}}</style></head><body><div class="header"><div class="logo-section"><div class="logo">FC</div><div class="company-info"><h1>Ferretería El Constructor</h1><p>Tu socio en construcción</p></div></div><div class="quote-info"><h2>COTIZACIÓN</h2><p><strong>N°:</strong> ${numeroCotizacion}</p><p><strong>Fecha:</strong> ${fecha}</p></div></div><div class="client-section"><h3>📋 Detalle de la Cotización</h3><p>Cliente: ${clientName || 'Walk-In (Quiosco)'}</p></div><div class="content">${currentResponse.replace(/\n/g, '<br>')}</div><div class="footer"><div class="contact-info"><span>📞 (01) 234-5678</span><span>✉️ ventas@ferreteriaelconstructor.com</span><span>📍 Av. Principal 123</span></div></div><div class="no-print" style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:15px 30px;background:#1e3c72;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600">🖨️ Imprimir Cotización</button></div><script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
+            printWindow.document.write(`<!DOCTYPE html><html><head><title>Cotización ${numeroCotizacion}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,sans-serif;padding:40px;max-width:800px;margin:0 auto;background:white;color:#333}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1e3c72;padding-bottom:20px;margin-bottom:30px}.logo-section{display:flex;align-items:center;gap:20px}.logo{width:80px;height:80px;background:#1e3c72;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:32px;font-weight:bold}.company-info h1{color:#1e3c72;font-size:28px;margin-bottom:5px}.company-info p{color:#666;font-size:14px}.quote-info{text-align:right}.quote-info h2{color:#1e3c72;font-size:28px;margin-bottom:10px;font-weight:bold}.quote-info p{color:#666;font-size:14px;margin-bottom:5px}.client-section{background:#f8f9fa;padding:15px 20px;border-radius:8px;margin-bottom:30px;border-left:4px solid #1e3c72}.client-section h3{color:#1e3c72;margin-bottom:8px;font-size:16px}.client-section p{color:#666;font-size:14px}.content{padding:20px;line-height:1.6}.footer{margin-top:40px;padding-top:20px;border-top:2px solid #1e3c72;display:flex;justify-content:space-between;align-items:flex-end}.contact-info{display:flex;flex-direction:column;gap:8px}.contact-info span{color:#666;font-size:14px}@media print{body{padding:20px}}</style></head><body><div class="header"><div class="logo-section"><div class="logo">FC</div><div class="company-info"><h1>Ferretería El Constructor</h1><p>Tu socio en construcción</p></div></div><div class="quote-info"><h2>COTIZACIÓN</h2><p><strong>N°:</strong> ${numeroCotizacion}</p><p><strong>Fecha:</strong> ${fecha}</p></div></div><div class="client-section"><h3>📋 Detalle de la Cotización</h3><p>Cliente: ${clientName || 'Walk-In (Quiosco)'}</p></div><div class="content">${currentResponse.replace(/\n/g, '<br>')}</div><div class="footer"><div class="contact-info"><span>📞 (01) 234-5678</span><span>✉️ ventas@ferreteriaelconstructor.com</span><span>📍 Av. Principal 123</span></div></div><div class="no-print" style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:15px 30px;background:#1e3c72;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600">️ Imprimir Cotización</button></div><script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
             printWindow.document.close();
         }
 
