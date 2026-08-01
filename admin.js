@@ -379,7 +379,7 @@ async function confirmarPago() {
         await loadVentas();
         
         // 4. Mostrar notificación
-        alert('✅ Pago confirmado exitosamente');
+        showToast('Pago confirmado exitosamente');
         
     } catch (error) {
         console.error('Error confirmando pago:', error);
@@ -398,3 +398,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/* ============================================
+   MOSTRAR TOAST
+   ============================================ */
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    if (!toast || !toastMessage) return;
+    
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
