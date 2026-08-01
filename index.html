@@ -392,6 +392,7 @@
 
         let currentModule = '';
         let currentResponse = '';
+        let currentAudio = '';  // ← AGREGA ESTA LÍNEA
         let recognition = null;
         let isListening = false;
         let clientName = '';
@@ -726,7 +727,7 @@
             document.getElementById('userInput').placeholder = 'Escribe o usa el micrófono...';
         }
 
-        async function sendQuestion() {
+      async function sendQuestion() {
     const question = document.getElementById('userInput').value.trim();
     if (!question) return;
     
@@ -736,7 +737,7 @@
     const sendBtn = document.getElementById('sendBtn');
     
     responseDiv.style.display = 'block';
-    responseContent.innerHTML = '<div class="loading">🤖 La IA está pensando...</div>';
+    responseContent.innerHTML = '<div class="loading"> La IA está pensando...</div>';
     responseActions.style.display = 'none';
     sendBtn.disabled = true;
     
@@ -754,7 +755,7 @@
             ).join('\n');
         }
         
-        // Llamar a la Edge Function de IA
+        // Llamar a la Edge Function de IA (que ahora incluye ElevenLabs)
         const response = await fetch('https://tpdstpnvsyqcvsfminip.supabase.co/functions/v1/asesor-ia', {
             method: 'POST',
             headers: {
@@ -774,19 +775,25 @@
         }
         
         currentResponse = data.respuesta;
+        currentAudio = data.audio; // Guardar el audio
         
         // Mostrar respuesta
         responseContent.innerHTML = currentResponse.replace(/\n/g, '<br>');
         responseActions.style.display = 'flex';
         
+        // Reproducir audio automáticamente
+        if (currentAudio) {
+            playElevenLabsAudio(currentAudio);
+        }
+        
     } catch (error) {
         console.error('Error:', error);
-        responseContent.innerHTML = '<div class="error"> Error de conexión con la IA. Intenta de nuevo.</div>';
+        responseContent.innerHTML = '<div class="error">❌ Error de conexión con la IA. Intenta de nuevo.</div>';
     } finally {
         sendBtn.disabled = false;
     }
-}
-
+}        
+        
         function speakResponse() {
             if (!currentResponse) return;
             window.speechSynthesis.cancel();
@@ -801,6 +808,31 @@
             utterance.onerror = () => document.getElementById('speakingIndicator').classList.remove('active');
             window.speechSynthesis.speak(utterance);
         }
+
+        // ← AGREGA LA NUEVA FUNCIÓN DESPUÉS DE ESTE CIERRE
+function playElevenLabsAudio(audioBase64) {
+    if (!audioBase64) return;
+    
+    const audio = new Audio(audioBase64);
+    
+    const speakingIndicator = document.getElementById('speakingIndicator');
+    if (speakingIndicator) {
+        speakingIndicator.classList.add('active');
+    }
+    
+    audio.onended = () => {
+        if (speakingIndicator) {
+            speakingIndicator.classList.remove('active');
+        }
+    };
+    
+    audio.play().catch(error => {
+        console.error('Error reproduciendo audio:', error);
+        if (speakingIndicator) {
+            speakingIndicator.classList.remove('active');
+        }
+    });
+}
 
         function printQuote() {
             if (!currentResponse) return;
