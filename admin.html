@@ -2,181 +2,129 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Ferretería El Constructor - Quiosco Inteligente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - Ferretería El Constructor</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
-    <!-- PANTALLA DE BIENVENIDA -->
-    <div id="screen-welcome" class="screen active">
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="screen active">
         <div class="kiosk-panel">
             <div class="logo-container">
                 <div class="logo-3d">
                     <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
                 </div>
-                <h1 class="kiosk-title">BIENVENIDO A LA<br>FERRETERÍA EL CONSTRUCTOR</h1>
+                <h1 class="kiosk-title">PANEL ADMINISTRATIVO</h1>
+                <p class="subtitle">Ferretería El Constructor</p>
             </div>
-            <div class="input-section">
-                <label for="clientName">INGRESA TU NOMBRE</label>
-                <input type="text" id="clientName" placeholder="Ej: Juan Carlos" autofocus>
-                <button class="btn-metal" onclick="vibrate(100); startSession()">
-                    <span>Comenzar</span>
-                    <div class="btn-indicator"></div>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PANTALLA DE MENÚ -->
-    <div id="screen-menu" class="screen">
-        <div class="kiosk-panel">
-            <div class="logo-container">
-                <div class="logo-3d">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
-                </div>
-            </div>
-            <div class="greeting" id="greetingText">
-                ¡Hola! Soy tu asistente virtual.<br>
-                Por favor elige una de las opciones y te ayudaré.
-            </div>
-            <div class="modules-grid">
-                <div class="module-card" onclick="vibrate(100); openModal('cotizar')">
-                    <div class="module-icon">📝</div>
-                    <div class="module-label">COTIZAR</div>
-                </div>
-                <div class="module-card" onclick="vibrate(100); openModal('precio')">
-                    <div class="module-icon">🏷️</div>
-                    <div class="module-label">CONSULTAR PRECIO</div>
-                </div>
-                <div class="module-card" onclick="vibrate(100); openBuyScreen()">
-                    <div class="module-icon">🛒</div>
-                    <div class="module-label">COMPRAR</div>
-                </div>
-                <div class="module-card" onclick="vibrate(100); openModal('asesor')">
-                    <div class="module-icon">🤖</div>
-                    <div class="module-label">ASISTENCIA / ASESORÍA</div>
-                </div>
-            </div>
-            <div class="exit-section">
-                <button class="btn-exit-metal" onclick="vibrate(100); endSession()">Salir</button>
+            <div class="login-form">
+                <label for="adminPassword">CONTRASEÑA</label>
+                <input type="password" id="adminPassword" placeholder="Ingresa la contraseña" autofocus>
+                <button class="btn-metal" onclick="login()">Ingresar</button>
+                <div id="loginError" class="error-message"></div>
+                <button class="btn-link" onclick="window.location.href='index.html'">← Volver al Quiosco</button>
             </div>
         </div>
     </div>
 
-    <!-- PANTALLA DE BÚSQUEDA -->
-    <div id="screen-buy" class="screen">
-        <div class="kiosk-panel">
-            <div class="logo-container">
-                <div class="logo-3d">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
+    <!-- PANTALLA PRINCIPAL DEL PANEL -->
+    <div id="admin-screen" class="screen">
+        <div class="kiosk-panel admin-panel">
+            <!-- Header -->
+            <div class="admin-header">
+                <div class="logo-container">
+                    <div class="logo-3d small">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
+                    </div>
+                    <h1 class="kiosk-title">PANEL ADMINISTRATIVO</h1>
                 </div>
-                <h2 class="screen-title">Buscar Productos</h2>
+                <button class="btn-exit-metal small" onclick="logout()">Salir</button>
             </div>
-            <div class="search-section">
-                <input type="text" class="search-input" id="searchInput" placeholder="Escribe el nombre del producto...">
-                <button class="btn-metal" onclick="vibrate(100); searchProducts()">Buscar</button>
+
+            <!-- Filtros de período -->
+            <div class="period-filters">
+                <button class="btn-filter active" data-period="hoy" onclick="filterPeriod('hoy')">Hoy</button>
+                <button class="btn-filter" data-period="semana" onclick="filterPeriod('semana')">Semana</button>
+                <button class="btn-filter" data-period="mes" onclick="filterPeriod('mes')">Mes</button>
+                <button class="btn-filter" data-period="todo" onclick="filterPeriod('todo')">Todo</button>
             </div>
-            <div class="product-list" id="productList">
-                <div class="empty-state">Busca productos para agregar a tu compra</div>
+
+            <!-- Estadísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Ventas Totales</div>
+                        <div class="stat-value" id="totalVentas">S/ 0.00</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"></div>
+                    <div class="stat-info">
+                        <div class="stat-label">N° de Ventas</div>
+                        <div class="stat-value" id="numVentas">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Pagadas</div>
+                        <div class="stat-value" id="ventasPagadas">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"></div>
+                    <div class="stat-info">
+                        <div class="stat-label">Pendientes</div>
+                        <div class="stat-value" id="ventasPendientes">0</div>
+                    </div>
+                </div>
             </div>
-            <div class="cart-actions">
-                <button class="btn-metal secondary" onclick="vibrate(100); showScreen('screen-menu')">Atrás</button>
-                <button class="btn-metal primary" onclick="vibrate(100); showCart()">
-                    Ver mi compra (<span id="cartCount">0</span>)
-                </button>
+
+            <!-- Alerta de stock bajo -->
+            <div class="alert-section" id="alertSection" style="display: none;">
+                <h3 class="alert-title">⚠️ Stock Bajo</h3>
+                <div class="alert-list" id="alertList"></div>
+            </div>
+
+            <!-- Lista de ventas -->
+            <div class="section">
+                <h3 class="section-title">📋 Lista de Ventas</h3>
+                <div class="ventas-list" id="ventasList">
+                    <div class="empty-state">Cargando ventas...</div>
+                </div>
+            </div>
+
+            <!-- Productos más vendidos -->
+            <div class="section">
+                <h3 class="section-title">🏆 Productos Más Vendidos</h3>
+                <div class="top-products" id="topProducts">
+                    <div class="empty-state">Cargando...</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- PANTALLA DE CARRITO -->
-    <div id="screen-cart" class="screen">
-        <div class="kiosk-panel">
-            <div class="logo-container">
-                <div class="logo-3d">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
-                </div>
-                <h2 class="screen-title">Resumen de Compra</h2>
-            </div>
-            <div class="cart-summary" id="cartSummary">
-                <div class="empty-state">Tu carrito está vacío</div>
-            </div>
-            <div class="cart-actions">
-                <button class="btn-metal secondary" onclick="vibrate(100); showScreen('screen-buy')">Seguir comprando</button>
-                <button class="btn-metal primary" onclick="vibrate(100); confirmPurchase()">Confirmar compra</button>
+    <!-- Modal de confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-panel small">
+            <h3 class="modal-title">Confirmar Pago</h3>
+            <p id="confirmMessage"></p>
+            <div class="modal-actions">
+                <button class="btn-metal secondary" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn-metal success" onclick="confirmarPago()">Confirmar Pago</button>
             </div>
         </div>
     </div>
 
-    <!-- PANTALLA DE CONFIRMACIÓN -->
-    <div id="screen-confirmation" class="screen">
-        <div class="kiosk-panel">
-            <div class="logo-container">
-                <div class="logo-3d">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
-                </div>
-            </div>
-            <div class="confirmation-content">
-                <h2 class="confirmation-title">¡Compra Confirmada!</h2>
-                <div class="sale-number-display" id="saleNumber">VTA-000000</div>
-                <div id="confirmationDetails"></div>
-                <p class="confirmation-note">Acércate a caja con este comprobante para completar tu compra</p>
-                <button class="btn-metal success" onclick="vibrate(100); printTicket()">🖨️ Imprimir Comprobante</button>
-                <button class="btn-metal" onclick="vibrate(100); resetToWelcome()" style="margin-top: 10px;">Volver al inicio</button>
-            </div>
-        </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-notification">
+        <div class="toast-icon">✅</div>
+        <div class="toast-message" id="toastMessage"></div>
     </div>
 
-    <!-- PANTALLA DE DESPEDIDA -->
-    <div id="screen-farewell" class="screen">
-        <div class="kiosk-panel">
-            <div class="logo-container">
-                <div class="logo-3d">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
-                </div>
-            </div>
-            <div class="confirmation-content">
-                <h2 class="confirmation-title">¡Muchas Gracias <span id="farewellName"></span>!</h2>
-                <p>Por visitarnos, vuelve pronto</p>
-                <div class="countdown-display" id="countdown">5</div>
-                <p class="countdown-text">Regresando al inicio...</p>
-                <button class="btn-metal" onclick="vibrate(100); resetToWelcome()">Finalizar ahora</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE CHAT IA -->
-    <div id="modal" class="modal">
-        <div class="modal-panel">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Asistente IA</h3>
-                <button class="btn-close" onclick="vibrate(100); closeModal()">✕</button>
-            </div>
-            <div class="chat-container">
-                <div class="chat-input-wrapper">
-                    <input type="text" class="chat-input" id="userInput" placeholder="Escribe o usa el micrófono...">
-                    <button class="voice-btn" id="voiceBtn" onclick="vibrate(100); toggleVoice()">🎤</button>
-                </div>
-                <button class="btn-metal" id="sendBtn" onclick="vibrate(100); sendQuestion()">Enviar</button>
-            </div>
-            <div id="response" class="response" style="display: none;">
-                <div id="responseContent"></div>
-                <div class="response-actions" id="responseActions" style="display: none;">
-                    <button class="btn-action" onclick="vibrate(100); speakResponse()">🔊 Escuchar</button>
-                    <button class="btn-action" onclick="vibrate(100); printQuote()">🖨️ Imprimir</button>
-                </div>
-            </div>
-            <div class="speaking-indicator" id="speakingIndicator">
-                <span>🔊 La IA está hablando...</span>
-                <div class="wave"></div><div class="wave"></div><div class="wave"></div><div class="wave"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="script.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
