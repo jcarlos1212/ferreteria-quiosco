@@ -823,6 +823,58 @@ body {
 }
 
 /* ============================================
+   NOTIFICACIÓN TOAST (CORREGIDO Y MEJORADO)
+   ============================================ */
+.toast {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-200px);
+    background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+    color: #e2e8f0;
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 
+        0 15px 50px rgba(0, 0, 0, 0.6),
+        inset 0 2px 10px rgba(255, 255, 255, 0.1);
+    border: 3px solid #48bb78;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: 90%;
+    min-width: 350px;
+    pointer-events: none;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast.hide {
+    transform: translateX(-50%) translateY(-200px);
+    opacity: 0;
+}
+
+.toast-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+}
+
+.toast-message {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #e2e8f0;
+    flex: 1;
+}
+
+/* ============================================
    RESPONSIVE PARA MÓVILES
    ============================================ */
 @media (max-width: 768px) {
@@ -866,6 +918,21 @@ body {
     .cart-actions .btn-metal {
         width: 100%;
     }
+    
+    /* Toast en móviles */
+    .toast {
+        top: 15px;
+        min-width: 280px;
+        padding: 15px 20px;
+    }
+    
+    .toast-icon {
+        font-size: 28px;
+    }
+    
+    .toast-message {
+        font-size: 14px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -902,59 +969,4 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(145deg, #718096 0%, #4a5568 100%);
-   
-  /* ============================================
-   NOTIFICACIÓN TOAST (CORREGIDO)
-   ============================================ */
-.toast {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-200px);
-    background: #2d3748;
-    color: #e2e8f0;
-    padding: 20px 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    border: 2px solid #4a5568;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    z-index: 9999;
-    opacity: 0;
-    transition: all 0.4s ease;
-    max-width: 90%;
-    min-width: 350px;
-    pointer-events: none;
-}
-
-.toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
-
-.toast.hide {
-    transform: translateX(-50%) translateY(-200px);
-    opacity: 0;
-}
-
-.toast-icon {
-    font-size: 28px;
-    flex-shrink: 0;
-    width: 40px;
-    text-align: center;
-}
-
-.toast-message {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.4;
-    color: #e2e8f0;
-}
-   
-/* Animación de salida */
-.toast.hide {
-    transform: translateX(-50%) translateY(-100px);
-    opacity: 0;
-}
 }
