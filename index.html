@@ -728,47 +728,65 @@
         }
 
         async function sendQuestion() {
-            const question = document.getElementById('userInput').value.trim();
-            if (!question) return;
-            const responseDiv = document.getElementById('response');
-            const responseContent = document.getElementById('responseContent');
-            const responseActions = document.getElementById('responseActions');
-            const sendBtn = document.getElementById('sendBtn');
-            responseDiv.style.display = 'block';
-            responseContent.innerHTML = '<div class="loading"> Procesando tu consulta...</div>';
-            responseActions.style.display = 'none';
-            sendBtn.disabled = true;
-            try {
-                const { data: productos, error } = await db
-                    .from('productos')
-                    .select('*')
-                    .ilike('nombre', `%${question}%`)
-                    .eq('estado', 'activo');
-                
-                if (error) throw error;
-                
-                let respuesta = '';
-                if (productos && productos.length > 0) {
-                    respuesta = `Encontré ${productos.length} producto(s) relacionado(s) con "${question}":\n\n`;
-                    productos.forEach(p => {
-                        respuesta += `• ${p.nombre}\n  Precio: S/ ${parseFloat(p.precio).toFixed(2)}\n  Stock: ${p.stock} ${p.unidad}\n\n`;
-                    });
-                } else {
-                    respuesta = `Lo siento, no encontré productos relacionados con "${question}". Te sugiero consultar con un asesor para más información.`;
-                }
-                
-                currentResponse = respuesta;
-                let html = currentResponse.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                responseContent.innerHTML = html;
-                responseActions.style.display = 'flex';
-            } catch (error) {
-                console.error('Error:', error);
-                responseContent.className = 'error';
-                responseContent.innerHTML = '❌ Error de conexión. Intenta de nuevo.';
-            } finally {
-                sendBtn.disabled = false;
-            }
+    const question = document.getElementById('userInput').value.trim();
+    if (!question) return;
+    
+    const responseDiv = document.getElementById('response');
+    const responseContent = document.getElementById('responseContent');
+    const responseActions = document.getElementById('responseActions');
+    const sendBtn = document.getElementById('sendBtn');
+    
+    responseDiv.style.display = 'block';
+    responseContent.innerHTML = '<div class="loading">🤖 La IA está pensando...</div>';
+    responseActions.style.display = 'none';
+    sendBtn.disabled = true;
+    
+    try {
+        // Obtener contexto de productos disponibles
+        const { data: productos, error: productosError } = await db
+            .from('productos')
+            .select('nombre, categoria, precio, stock, unidad')
+            .eq('estado', 'activo');
+        
+        let contextoInventario = '';
+        if (productos && productos.length > 0) {
+            contextoInventario = productos.map(p => 
+                `- ${p.nombre} (${p.categoria}): S/ ${p.precio} por ${p.unidad} - Stock: ${p.stock}`
+            ).join('\n');
         }
+        
+        // Llamar a la Edge Function de IA
+        const response = await fetch('https://tpdstpnvsyqcvsfminip.supabase.co/functions/v1/asesor-ia', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer sb_publishable_ZCntTGwCbMRC2A-pL0d8vQ_GwMiH1bt'
+            },
+            body: JSON.stringify({
+                pregunta: question,
+                contexto: contextoInventario
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Error en la respuesta de la IA');
+        }
+        
+        currentResponse = data.respuesta;
+        
+        // Mostrar respuesta
+        responseContent.innerHTML = currentResponse.replace(/\n/g, '<br>');
+        responseActions.style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Error:', error);
+        responseContent.innerHTML = '<div class="error"> Error de conexión con la IA. Intenta de nuevo.</div>';
+    } finally {
+        sendBtn.disabled = false;
+    }
+}
 
         function speakResponse() {
             if (!currentResponse) return;
