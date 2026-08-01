@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - Ferretería El Constructor</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="screen active">
+        <div class="kiosk-panel">
+            <div class="logo-container">
+                <div class="logo-3d">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
+                </div>
+                <h1 class="kiosk-title">PANEL ADMINISTRATIVO</h1>
+                <p class="subtitle">Ferretería El Constructor</p>
+            </div>
+            <div class="login-form">
+                <label for="adminPassword">CONTRASEÑA</label>
+                <input type="password" id="adminPassword" placeholder="Ingresa la contraseña" autofocus>
+                <button class="btn-metal" onclick="login()">Ingresar</button>
+                <div id="loginError" class="error-message"></div>
+                <button class="btn-link" onclick="window.location.href='index.html'">← Volver al Quiosco</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA PRINCIPAL DEL PANEL -->
+    <div id="admin-screen" class="screen">
+        <div class="kiosk-panel admin-panel">
+            <!-- Header -->
+            <div class="admin-header">
+                <div class="logo-container">
+                    <div class="logo-3d small">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
+                    </div>
+                    <h1 class="kiosk-title">PANEL ADMINISTRATIVO</h1>
+                </div>
+                <button class="btn-exit-metal small" onclick="logout()">Salir</button>
+            </div>
+
+            <!-- Filtros de período -->
+            <div class="period-filters">
+                <button class="btn-filter active" data-period="hoy" onclick="filterPeriod('hoy')">Hoy</button>
+                <button class="btn-filter" data-period="semana" onclick="filterPeriod('semana')">Semana</button>
+                <button class="btn-filter" data-period="mes" onclick="filterPeriod('mes')">Mes</button>
+                <button class="btn-filter" data-period="todo" onclick="filterPeriod('todo')">Todo</button>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Ventas Totales</div>
+                        <div class="stat-value" id="totalVentas">S/ 0.00</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🛒</div>
+                    <div class="stat-info">
+                        <div class="stat-label">N° de Ventas</div>
+                        <div class="stat-value" id="numVentas">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Pagadas</div>
+                        <div class="stat-value" id="ventasPagadas">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Pendientes</div>
+                        <div class="stat-value" id="ventasPendientes">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerta de stock bajo -->
+            <div class="alert-section" id="alertSection" style="display: none;">
+                <h3 class="alert-title">⚠️ Stock Bajo</h3>
+                <div class="alert-list" id="alertList"></div>
+            </div>
+
+            <!-- Lista de ventas -->
+            <div class="section">
+                <h3 class="section-title"> Lista de Ventas</h3>
+                <div class="ventas-list" id="ventasList">
+                    <div class="empty-state">Cargando ventas...</div>
+                </div>
+            </div>
+
+            <!-- Productos más vendidos -->
+            <div class="section">
+                <h3 class="section-title"> Productos Más Vendidos</h3>
+                <div class="top-products" id="topProducts">
+                    <div class="empty-state">Cargando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-panel small">
+            <h3 class="modal-title">Confirmar Pago</h3>
+            <p id="confirmMessage"></p>
+            <div class="modal-actions">
+                <button class="btn-metal secondary" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn-metal success" onclick="confirmarPago()">Confirmar Pago</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
