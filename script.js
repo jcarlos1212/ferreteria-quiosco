@@ -342,7 +342,9 @@ function addToCartWithQty(idx, name, price) {
     }
     
     updateCartCount();
-    alert(`${name} x${qty} agregado al carrito`);
+    
+    // Mostrar notificación toast en lugar de alert
+    showToast(`${name} x${qty} agregado al carrito`);
     
     productQuantities[idx] = 1;
     const qtyDisplay = document.getElementById(`qty-${idx}`);
@@ -350,7 +352,6 @@ function addToCartWithQty(idx, name, price) {
         qtyDisplay.textContent = '1';
     }
 }
-
 /* ============================================
    ACTUALIZAR CONTADOR DEL CARRITO
    ============================================ */
