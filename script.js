@@ -752,3 +752,29 @@ function printQuote() {
     printWindow.document.write(`<!DOCTYPE html><html><head><title>Cotización ${numeroCotizacion}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,sans-serif;padding:40px;max-width:800px;margin:0 auto;background:white;color:#333}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #667eea;padding-bottom:20px;margin-bottom:30px}.logo-section{display:flex;align-items:center;gap:20px}.logo{width:80px;height:80px;background:#667eea;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:32px;font-weight:bold}.company-info h1{color:#667eea;font-size:28px;margin-bottom:5px}.company-info p{color:#666;font-size:14px}.quote-info{text-align:right}.quote-info h2{color:#667eea;font-size:28px;margin-bottom:10px;font-weight:bold}.quote-info p{color:#666;font-size:14px;margin-bottom:5px}.client-section{background:#f8f9fa;padding:15px 20px;border-radius:8px;margin-bottom:30px;border-left:4px solid #667eea}.client-section h3{color:#667eea;margin-bottom:8px;font-size:16px}.client-section p{color:#666;font-size:14px}.content{padding:20px;line-height:1.6}.footer{margin-top:40px;padding-top:20px;border-top:2px solid #667eea;display:flex;justify-content:space-between;align-items:flex-end}.contact-info{display:flex;flex-direction:column;gap:8px}.contact-info span{color:#666;font-size:14px}@media print{body{padding:20px}}</style></head><body><div class="header"><div class="logo-section"><div class="logo">FC</div><div class="company-info"><h1>Ferretería El Constructor</h1><p>Tu socio en construcción</p></div></div><div class="quote-info"><h2>COTIZACIÓN</h2><p><strong>N°:</strong> ${numeroCotizacion}</p><p><strong>Fecha:</strong> ${fecha}</p></div></div><div class="client-section"><h3>📋 Detalle de la Cotización</h3><p>Cliente: ${clientName || 'Walk-In (Quiosco)'}</p></div><div class="content">${currentResponse.replace(/\n/g, '<br>')}</div><div class="footer"><div class="contact-info"><span>📞 (01) 234-5678</span><span>✉️ ventas@ferreteriaelconstructor.com</span><span>📍 Av. Principal 123</span></div></div><div class="no-print" style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:15px 30px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600">🖨️ Imprimir Cotización</button></div><script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
     printWindow.document.close();
 }
+
+/* ============================================
+   MOSTRAR NOTIFICACIÓN TOAST
+   ============================================ */
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    if (!toast || !toastMessage) return;
+    
+    // Actualizar mensaje
+    toastMessage.textContent = message;
+    
+    // Mostrar toast
+    toast.classList.remove('hide');
+    toast.classList.add('show');
+    
+    // Vibrar si es móvil
+    vibrate(100);
+    
+    // Ocultar después de 3 segundos
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+    }, 3000);
+}
