@@ -638,7 +638,8 @@ body {
 }
 
 .modal-panel.small {
-    max-width: 400px;
+     max-width: 450px;
+     padding: 30px;
 }
 
 .modal-title {
@@ -661,6 +662,10 @@ body {
 
 .modal-actions .btn-metal {
     flex: 1;
+    padding: 15px 20px;
+    font-size: 16px;
+    min-height: 55px;
+    white-space: nowrap;
 }
 
 /* ============================================
@@ -742,4 +747,46 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(145deg, #718096 0%, #4a5568 100%);
+}
+
+/* ============================================
+   TOAST NOTIFICATION
+   ============================================ */
+.toast-notification {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-200px);
+    background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+    color: #e2e8f0;
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 
+        0 15px 50px rgba(0, 0, 0, 0.6),
+        inset 0 2px 10px rgba(255, 255, 255, 0.1);
+    border: 3px solid #48bb78;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: 90%;
+    min-width: 350px;
+}
+
+.toast-notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast-notification .toast-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.toast-notification .toast-message {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
 }
