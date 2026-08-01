@@ -902,4 +902,51 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(145deg, #718096 0%, #4a5568 100%);
+   /* ============================================
+   NOTIFICACIÓN TOAST
+   ============================================ */
+.toast {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(145deg, #4a5568 0%, #2d3748 100%);
+    color: #e2e8f0;
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        inset 0 2px 5px rgba(255, 255, 255, 0.1);
+    border: 3px solid #1a202c;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 2000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: 90%;
+    min-width: 300px;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* Animación de salida */
+.toast.hide {
+    transform: translateX(-50%) translateY(-100px);
+    opacity: 0;
+}
 }
