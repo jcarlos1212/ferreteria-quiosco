@@ -1004,3 +1004,93 @@ body {
 .admin-secret-btn:active {
     transform: scale(0.9);
 }
+
+/* ============================================
+   MODO OSCURO / CLARO
+   ============================================ */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #4a5568 0%, #2d3748 100%);
+    color: #e2e8f0;
+    border: 2px solid #1a202c;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+}
+
+.theme-toggle:hover {
+    transform: rotate(180deg);
+}
+
+/* Modo Claro */
+body.light-mode {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+body.light-mode .kiosk-panel {
+    background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
+    border-color: #cbd5e0;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.1),
+        inset 0 2px 10px rgba(255, 255, 255, 0.8);
+}
+
+body.light-mode .kiosk-title,
+body.light-mode .screen-title {
+    color: #2d3748;
+}
+
+body.light-mode .greeting {
+    color: #4a5568;
+}
+
+body.light-mode .module-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f7fafc 100%);
+    border-color: #cbd5e0;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .module-label {
+    color: #2d3748;
+}
+
+body.light-mode input,
+body.light-mode .search-input,
+body.light-mode .chat-input {
+    background: linear-gradient(145deg, #ffffff 0%, #f7fafc 100%);
+    color: #2d3748;
+    border-color: #cbd5e0;
+}
+
+body.light-mode input::placeholder,
+body.light-mode .search-input::placeholder,
+body.light-mode .chat-input::placeholder {
+    color: #a0aec0;
+}
+
+body.light-mode .btn-metal {
+    background: linear-gradient(145deg, #4a5568 0%, #718096 100%);
+    color: white;
+}
+
+body.light-mode .product-item {
+    background: linear-gradient(145deg, #ffffff 0%, #f7fafc 100%);
+    border-color: #cbd5e0;
+}
+
+body.light-mode .product-name {
+    color: #2d3748;
+}
+
+body.light-mode .response {
+    background: #f7fafc;
+    color: #2d3748;
+    border-color: #cbd5e0;
+}
