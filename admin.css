@@ -883,4 +883,121 @@ body {
     display: none;
 }
 
+/* ============================================
+   GESTIÓN DE PRODUCTOS
+   ============================================ */
+.products-section {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 25px;
+    border: 2px solid #4a5568;
+}
+
+.search-products {
+    margin-bottom: 20px;
+}
+
+.search-products input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #1a202c;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+    color: #e2e8f0;
+    font-size: 15px;
+}
+
+.search-products input:focus {
+    outline: none;
+    border-color: #4299e1;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.product-card {
+    background: linear-gradient(145deg, #4a5568 0%, #2d3748 100%);
+    border-radius: 15px;
+    padding: 20px;
+    border: 2px solid #1a202c;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.product-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.product-card-name {
+    color: #e2e8f0;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.product-card-price {
+    color: #48bb78;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.product-card-stock {
+    color: #a0aec0;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.product-image-container {
+    width: 100%;
+    height: 150px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    overflow: hidden;
+    border: 2px dashed #4a5568;
+    position: relative;
+}
+
+.product-image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.product-image-container .no-image {
+    color: #718096;
+    font-size: 14px;
+    text-align: center;
+}
+
+.btn-upload-image {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(145deg, #4299e1 0%, #2b6cb0 100%);
+    color: white;
+    border: 2px solid #1a202c;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    touch-action: manipulation;
+}
+
+.btn-upload-image:active {
+    transform: scale(0.95);
+}
+
+.product-image-input {
+    display: none;
+}
+
 
