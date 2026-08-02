@@ -276,6 +276,10 @@ async function searchProducts() {
 function displayProducts(products) {
     const productList = document.getElementById('productList');
     if (!productList) return;
+   console.log('Productos en displayProducts:', products);
+   if (products && products.length > 0) {
+      console.log('Primer producto:', products[0]);
+   }
     
     if (!products || products.length === 0) {
         productList.innerHTML = '<div class="empty-state">No se encontraron productos</div>';
