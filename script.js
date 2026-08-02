@@ -273,6 +273,7 @@ async function searchProducts() {
 /* ============================================
    MOSTRAR PRODUCTOS
    ============================================ */
+
 function displayProducts(products) {
     const productList = document.getElementById('productList');
     if (!productList) return;
@@ -284,9 +285,15 @@ function displayProducts(products) {
     
     productList.innerHTML = products.map((prod, idx) => `
         <div class="product-item">
+            <div class="product-image-small">
+                ${prod.imagen_url ? 
+                    `<img src="${prod.imagen_url}" alt="${prod.nombre}">` : 
+                    `<div class="no-image-small">📦</div>`
+                }
+            </div>
             <div class="product-info">
-                <div class="product-name">${prod.name}</div>
-                <div class="product-price">S/ ${prod.price.toFixed(2)}</div>
+                <div class="product-name">${prod.nombre}</div>
+                <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
                 <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
                 <div class="quantity-control">
                     <button class="qty-btn" onclick="vibrate(50); decreaseQty(${idx})">-</button>
@@ -294,7 +301,9 @@ function displayProducts(products) {
                     <button class="qty-btn" onclick="vibrate(50); increaseQty(${idx})">+</button>
                 </div>
             </div>
-            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${idx}, '${prod.name.replace(/'/g, "\\'")}', ${prod.price})" ${prod.stock === 0 ? 'disabled style="background:#999"' : ''}>Agregar</button>
+            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${idx}, '${prod.nombre.replace(/'/g, "\\'")}', ${prod.precio})" ${prod.stock === 0 ? 'disabled style="background:#999"' : ''}>
+                Agregar
+            </button>
         </div>
     `).join('');
 }
