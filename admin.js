@@ -498,8 +498,18 @@ function actualizarLogoEnApp(logoUrl, nombreNegocio) {
     // Actualizar en el quiosco (index.html)
     const logosQuiosco = document.querySelectorAll('.logo-3d img');
     logosQuiosco.forEach(img => {
-        if (logoUrl) img.src = logoUrl;
-        if (nombreNegocio) img.alt = nombreNegocio;
+        // LIMPIAR primero
+        img.src = '';
+        img.style.opacity = '0';
+        
+        // Luego cargar nuevo logo
+        setTimeout(() => {
+            if (logoUrl) {
+                img.src = logoUrl;
+                img.style.opacity = '1';
+            }
+            if (nombreNegocio) img.alt = nombreNegocio;
+        }, 100);
     });
     
     // Actualizar títulos
@@ -511,6 +521,19 @@ function actualizarLogoEnApp(logoUrl, nombreNegocio) {
     });
 }
 
+function actualizarLogoEnPanel(logoUrl, nombreNegocio) {
+    // Actualizar logo en el header del panel admin
+    const logoHeader = document.querySelector('.admin-header .logo-3d img');
+    if (logoHeader) {
+        logoHeader.src = '';
+        setTimeout(() => {
+            if (logoUrl) {
+                logoHeader.src = logoUrl;
+            }
+            logoHeader.alt = nombreNegocio || 'Logo';
+        }, 100);
+    }
+}
 // Mostrar modal para subir logo
 function mostrarSubirLogo() {
     const url = prompt('Ingresa la URL de tu logo:\n\nPuedes subir tu logo a:\n- https://imgbb.com/\n- https://postimages.org/\n\nY pegar el enlace aquí:');
