@@ -778,3 +778,26 @@ function showToast(message) {
         toast.classList.add('hide');
     }, 3000);
 }
+
+/* ============================================
+   ACCESO SECRETO AL PANEL ADMIN
+   ============================================ */
+function openAdminPanel() {
+    // Pedir contraseña antes de abrir el admin
+    const password = prompt('🔐 Acceso Administrativo\n\nIngresa la contraseña:');
+    
+    if (password === 'admin2026') {
+        // Abrir el panel admin en una nueva pestaña
+        window.open('admin.html', '_blank');
+    } else if (password !== null) {
+        alert('❌ Contraseña incorrecta');
+    }
+}
+
+// Atajo de teclado secreto: Ctrl + Shift + A
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        openAdminPanel();
+    }
+});
