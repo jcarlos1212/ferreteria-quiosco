@@ -434,6 +434,7 @@ async function cargarConfigNegocio() {
         }
         
         if (data) {
+            // Actualizar campos del formulario
             const elNombre = document.getElementById('configNombre');
             const elLogo = document.getElementById('configLogo');
             const elPreview = document.getElementById('logoPreviewImg');
@@ -441,19 +442,31 @@ async function cargarConfigNegocio() {
             if (elNombre) elNombre.value = data.nombre_negocio || '';
             if (elLogo) elLogo.value = data.logo_url || '';
             
-            // LIMPIAR Y CARGAR LOGO CORRECTAMENTE
+            // Actualizar preview si existe
             if (elPreview) {
                 if (data.logo_url) {
                     elPreview.src = data.logo_url;
                     elPreview.alt = data.nombre_negocio || 'Logo';
                     elPreview.style.display = 'block';
                 } else {
-                    elPreview.src = '';
                     elPreview.style.display = 'none';
                 }
             }
             
-            // Actualizar logo en el panel admin
+            // ACTUALIZAR LOGO EN EL LOGIN (esto es lo que faltaba)
+            const loginLogo = document.querySelector('#login-screen .logo-3d img');
+            if (loginLogo && data.logo_url) {
+                loginLogo.src = data.logo_url;
+                loginLogo.alt = data.nombre_negocio || 'Logo';
+            }
+            
+            // Actualizar subtítulo del login
+            const loginSubtitle = document.querySelector('#login-screen .subtitle');
+            if (loginSubtitle && data.nombre_negocio) {
+                loginSubtitle.textContent = data.nombre_negocio;
+            }
+            
+            // Actualizar logo en el header del dashboard
             actualizarLogoEnPanel(data.logo_url, data.nombre_negocio);
         }
     } catch (error) {
