@@ -522,18 +522,24 @@ function actualizarLogoEnApp(logoUrl, nombreNegocio) {
 }
 
 function actualizarLogoEnPanel(logoUrl, nombreNegocio) {
-    // Actualizar logo en el header del panel admin
-    const logoHeader = document.querySelector('.admin-header .logo-3d img');
-    if (logoHeader) {
-        logoHeader.src = '';
-        setTimeout(() => {
-            if (logoUrl) {
-                logoHeader.src = logoUrl;
-            }
-            logoHeader.alt = nombreNegocio || 'Logo';
-        }, 100);
+    // Actualizar logo en TODOS los lugares del admin (login + header)
+    const logos = document.querySelectorAll('.logo-3d img');
+    logos.forEach(img => {
+        if (logoUrl) {
+            img.src = logoUrl;
+        }
+        if (nombreNegocio) {
+            img.alt = nombreNegocio;
+        }
+    });
+    
+    // Actualizar subtítulo si existe
+    const subtitle = document.querySelector('.subtitle');
+    if (subtitle && nombreNegocio) {
+        subtitle.textContent = nombreNegocio;
     }
 }
+
 // Mostrar modal para subir logo
 function mostrarSubirLogo() {
     const url = prompt('Ingresa la URL de tu logo:\n\nPuedes subir tu logo a:\n- https://imgbb.com/\n- https://postimages.org/\n\nY pegar el enlace aquí:');
