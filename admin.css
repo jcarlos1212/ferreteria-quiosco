@@ -793,3 +793,90 @@ body {
     font-weight: 600;
     line-height: 1.4;
 }
+
+/* ============================================
+   CONFIGURACIÓN DEL NEGOCIO
+   ============================================ */
+.config-section {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 25px;
+    border: 2px solid #4a5568;
+}
+
+.config-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group label {
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.form-group input {
+    padding: 12px 15px;
+    border: 2px solid #1a202c;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #2d3748 0%, #1a202c 100%);
+    color: #e2e8f0;
+    font-size: 15px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4299e1;
+}
+
+.logo-upload-section {
+    display: flex;
+    gap: 10px;
+}
+
+.logo-upload-section input {
+    flex: 1;
+}
+
+.btn-small {
+    padding: 10px 20px;
+    background: linear-gradient(145deg, #4299e1 0%, #2b6cb0 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.logo-preview {
+    margin-top: 15px;
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    min-height: 100px;
+}
+
+.logo-preview img {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 50%;
+    border: 3px solid #4299e1;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.logo-preview img[src=""],
+.logo-preview img[src="#"] {
+    display: none;
+}
+
+
