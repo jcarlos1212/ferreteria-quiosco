@@ -89,18 +89,35 @@ body {
     width: 120px;
     height: 120px;
     margin: 0 auto 20px;
-    background: linear-gradient(145deg, #f093fb 0%, #f5576c 100%);
+    background: transparent;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 
-        0 10px 30px rgba(0, 0, 0, 0.5),
-        inset 0 5px 15px rgba(255, 255, 255, 0.3),
-        inset 0 -5px 15px rgba(0, 0, 0, 0.3);
+        0 10px 30px rgba(0, 0, 0, 0.5);
     border: 4px solid #1a202c;
     position: relative;
     overflow: hidden;
+}
+
+.logo-3d::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: transparent;
+    border-radius: 50%;
+}
+
+.logo-3d img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    background: white;
+    border-radius: 50%;
+    padding: 5px;
 }
 
 .logo-3d.small {
@@ -109,23 +126,10 @@ body {
     margin: 0;
 }
 
-.logo-3d::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
-    border-radius: 50%;
+.logo-3d.small img {
+    width: 85%;
+    height: 85%;
 }
-
-.logo-3d img {
-    width: 80%;
-    height: 80%;
-    object-fit: contain;
-    position: relative;
-    z-index: 1;
-    filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
-}
-
 .kiosk-title {
     color: #e2e8f0;
     font-size: 28px;
