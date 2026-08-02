@@ -820,11 +820,11 @@ function toggleTheme() {
 
 // Cargar tema guardado al iniciar
 document.addEventListener('DOMContentLoaded', function() {
+     // Cargar configuración del negocio
+    cargarConfigDesdeQuiosco();
     const savedTheme = localStorage.getItem('theme');
     const themeToggle = document.getElementById('themeToggle');
-   // Cargar configuración del negocio
-    cargarConfigDesdeQuiosco();
-    
+     
     if (savedTheme === 'light') {
         document.body.classList.add('light-mode');
         if (themeToggle) themeToggle.textContent = '';
@@ -841,32 +841,38 @@ async function cargarConfigDesdeQuiosco() {
             .select('*')
             .single();
         
-        if (error) throw error;
+        if (error) {
+            console.log('No hay configuración personalizada, usando defaults');
+            return;
+        }
         
         if (data) {
             // Actualizar logo
             if (data.logo_url) {
-                const logos = document.querySelectorAll('.logo-3d img');
-                logos.forEach(img => {
-                    img.src = data.logo_url;
-                });
+                setTimeout(() => {
+                    const logos = document.querySelectorAll('.logo-3d img');
+                    logos.forEach(img => {
+                        img.src = data.logo_url;
+                    });
+                }, 100);
             }
             
             // Actualizar nombre
             if (data.nombre_negocio) {
-                const titulos = document.querySelectorAll('.kiosk-title');
-                titulos.forEach(titulo => {
-                    if (titulo.textContent.includes('BIENVENIDO')) {
-                        titulo.innerHTML = `BIENVENIDO A LA<br>${data.nombre_negocio.toUpperCase()}`;
-                    }
-                });
-                
-                // Actualizar subtítulo
-                const subtitle = document.querySelector('.subtitle');
-                if (subtitle) subtitle.textContent = data.nombre_negocio;
+                setTimeout(() => {
+                    const titulos = document.querySelectorAll('.kiosk-title');
+                    titulos.forEach(titulo => {
+                        if (titulo.textContent.includes('BIENVENIDO')) {
+                            titulo.innerHTML = `BIENVENIDO A LA<br>${data.nombre_negocio.toUpperCase()}`;
+                        }
+                    });
+                    
+                    const subtitle = document.querySelector('.subtitle');
+                    if (subtitle) subtitle.textContent = data.nombre_negocio;
+                }, 100);
             }
         }
     } catch (error) {
-        console.log('Usando configuración por defecto');
+        console.log('Error cargando config:', error.message);
     }
 }
