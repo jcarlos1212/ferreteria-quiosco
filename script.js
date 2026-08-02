@@ -822,9 +822,51 @@ function toggleTheme() {
 document.addEventListener('DOMContentLoaded', function() {
     const savedTheme = localStorage.getItem('theme');
     const themeToggle = document.getElementById('themeToggle');
+   // Cargar configuración del negocio
+    cargarConfigDesdeQuiosco();
     
     if (savedTheme === 'light') {
         document.body.classList.add('light-mode');
         if (themeToggle) themeToggle.textContent = '';
     }
 });
+
+/* ============================================
+   CARGAR CONFIGURACIÓN DEL NEGOCIO
+   ============================================ */
+async function cargarConfigDesdeQuiosco() {
+    try {
+        const { data, error } = await db
+            .from('config_negocio')
+            .select('*')
+            .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+            // Actualizar logo
+            if (data.logo_url) {
+                const logos = document.querySelectorAll('.logo-3d img');
+                logos.forEach(img => {
+                    img.src = data.logo_url;
+                });
+            }
+            
+            // Actualizar nombre
+            if (data.nombre_negocio) {
+                const titulos = document.querySelectorAll('.kiosk-title');
+                titulos.forEach(titulo => {
+                    if (titulo.textContent.includes('BIENVENIDO')) {
+                        titulo.innerHTML = `BIENVENIDO A LA<br>${data.nombre_negocio.toUpperCase()}`;
+                    }
+                });
+                
+                // Actualizar subtítulo
+                const subtitle = document.querySelector('.subtitle');
+                if (subtitle) subtitle.textContent = data.nombre_negocio;
+            }
+        }
+    } catch (error) {
+        console.log('Usando configuración por defecto');
+    }
+}
