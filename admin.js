@@ -518,3 +518,52 @@ loadDashboard = async function() {
     await cargarConfigNegocio();
 };
 
+/* ============================================
+   SUBIR LOGO DESDE ARCHIVO LOCAL
+   ============================================ */
+async function handleLogoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Verificar tamaño (máx 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('El logo debe ser menor a 5MB');
+        return;
+    }
+    
+    // Mostrar loading
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = ' Subiendo...';
+    btn.disabled = true;
+    
+    try {
+        // Opción 1: Usar ImgBB (gratis, requiere API key)
+        // Opción 2: Usar Cloudinary (gratis, más profesional)
+        // Opción 3: Guardar en Supabase Storage (recomendado)
+        
+        // Por ahora, usaremos una solución simple:
+        // Convertir a base64 y mostrar preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Url = e.target.result;
+            
+            // Actualizar input y preview
+            document.getElementById('configLogo').value = base64Url;
+            document.getElementById('logoPreviewImg').src = base64Url;
+            
+            showToast('✅ Logo cargado correctamente');
+            
+            btn.textContent = originalText;
+            btn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+        
+    } catch (error) {
+        console.error('Error subiendo logo:', error);
+        alert('❌ Error al subir el logo');
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
