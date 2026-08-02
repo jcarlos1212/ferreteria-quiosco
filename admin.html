@@ -107,10 +107,11 @@
         </div>
         
         <div class="form-group">
-            <label>URL del Logo</label>
+            <!-- <label>URL del Logo</label>  -->
             <div class="logo-upload-section">
-                <input type="text" id="configLogo" placeholder="https://ejemplo.com/logo.png">
-                <button class="btn-small" onclick="mostrarSubirLogo()">📁 Subir Logo</button>
+            <input type="text" id="configLogo" placeholder="https://ejemplo.com/logo.png">
+            <input type="file" id="logoFileInput" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
+            <button class="btn-small" onclick="document.getElementById('logoFileInput').click()">📁 Subir Logo</button>
             </div>
             <div class="logo-preview" id="logoPreview">
                 <img src="" alt="Logo actual" id="logoPreviewImg">
