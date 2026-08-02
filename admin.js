@@ -100,6 +100,9 @@ async function loadDashboard() {
         loadStockBajo(),
         loadTopProductos()
     ]);
+    
+    // Cargar configuración del negocio
+    await cargarConfigNegocio();
 }
 
 /* ============================================
