@@ -847,12 +847,19 @@ async function cargarConfigDesdeQuiosco() {
         }
         
         if (data) {
-            // Actualizar logo
+            // LIMPIAR logos primero
+            const logos = document.querySelectorAll('.logo-3d img');
+            logos.forEach(img => {
+                img.src = '';
+                img.style.opacity = '0';
+            });
+            
+            // Cargar nuevo logo después de limpiar
             if (data.logo_url) {
                 setTimeout(() => {
-                    const logos = document.querySelectorAll('.logo-3d img');
                     logos.forEach(img => {
                         img.src = data.logo_url;
+                        img.style.opacity = '1';
                     });
                 }, 100);
             }
