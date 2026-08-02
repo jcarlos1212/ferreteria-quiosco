@@ -428,7 +428,10 @@ async function cargarConfigNegocio() {
             .select('*')
             .single();
         
-        if (error) throw error;
+        if (error) {
+            console.error('Error cargando config:', error);
+            return;
+        }
         
         if (data) {
             const elNombre = document.getElementById('configNombre');
@@ -437,19 +440,26 @@ async function cargarConfigNegocio() {
             
             if (elNombre) elNombre.value = data.nombre_negocio || '';
             if (elLogo) elLogo.value = data.logo_url || '';
+            
+            // LIMPIAR Y CARGAR LOGO CORRECTAMENTE
             if (elPreview) {
-                elPreview.src = data.logo_url || '';
-                elPreview.alt = data.nombre_negocio || 'Logo';
+                if (data.logo_url) {
+                    elPreview.src = data.logo_url;
+                    elPreview.alt = data.nombre_negocio || 'Logo';
+                    elPreview.style.display = 'block';
+                } else {
+                    elPreview.src = '';
+                    elPreview.style.display = 'none';
+                }
             }
             
-            // Actualizar logo en toda la app
-            actualizarLogoEnApp(data.logo_url, data.nombre_negocio);
+            // Actualizar logo en el panel admin
+            actualizarLogoEnPanel(data.logo_url, data.nombre_negocio);
         }
     } catch (error) {
         console.error('Error cargando configuración:', error);
     }
 }
-
 // Guardar configuración
 async function guardarConfig() {
     const nombre = document.getElementById('configNombre').value.trim();
