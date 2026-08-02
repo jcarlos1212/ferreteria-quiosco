@@ -799,3 +799,32 @@ document.addEventListener('keydown', function(e) {
         openAdminPanel();
     }
 });
+
+/* ============================================
+   MODO OSCURO / CLARO
+   ============================================ */
+function toggleTheme() {
+    const body = document.body;
+    const themeToggle = document.getElementById('themeToggle');
+    
+    if (body.classList.contains('light-mode')) {
+        body.classList.remove('light-mode');
+        localStorage.setItem('theme', 'dark');
+        if (themeToggle) themeToggle.textContent = '🌓';
+    } else {
+        body.classList.add('light-mode');
+        localStorage.setItem('theme', 'light');
+        if (themeToggle) themeToggle.textContent = '🌙';
+    }
+}
+
+// Cargar tema guardado al iniciar
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme');
+    const themeToggle = document.getElementById('themeToggle');
+    
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        if (themeToggle) themeToggle.textContent = '';
+    }
+});
