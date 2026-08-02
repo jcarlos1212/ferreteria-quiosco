@@ -926,29 +926,23 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-.product-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 15px;
+.product-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f7fafc 100%); /* ← Blanco */
+    border-radius: 15px;
+    padding: 20px;
+    border: 2px solid #cbd5e0; /* ← Borde gris claro */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* ← Sombra más suave */
 }
 
 .product-card-name {
-    color: #e2e8f0;
+    color: #2d3748; /* ← Texto oscuro */
     font-size: 16px;
     font-weight: 600;
     flex: 1;
 }
 
-.product-card-price {
-    color: #48bb78;
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
 .product-card-stock {
-    color: #a0aec0;
+    color: #718096; /* ← Gris */
     font-size: 14px;
     margin-bottom: 15px;
 }
