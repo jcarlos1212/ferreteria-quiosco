@@ -629,3 +629,126 @@ window.addEventListener('load', function() {
         cargarConfigNegocio();
     }, 500);
 });
+
+/* ============================================
+   GESTIÓN DE PRODUCTOS
+   ============================================ */
+let allProducts = [];
+
+// Cargar productos al iniciar el dashboard
+async function cargarProductosAdmin() {
+    try {
+        const { data, error } = await db
+            .from('productos')
+            .select('*')
+            .eq('estado', 'activo')
+            .order('nombre', { ascending: true });
+        
+        if (error) throw error;
+        
+        allProducts = data || [];
+        renderProductosAdmin(allProducts);
+        
+    } catch (error) {
+        console.error('Error cargando productos:', error);
+    }
+}
+
+function renderProductosAdmin(products) {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    
+    if (products.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No se encontraron productos</div>';
+        return;
+    }
+    
+    grid.innerHTML = products.map(prod => `
+        <div class="product-card">
+            <div class="product-card-header">
+                <div class="product-card-name">${prod.nombre}</div>
+            </div>
+            <div class="product-card-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
+            <div class="product-card-stock">Stock: ${prod.stock} ${prod.unidad || 'unid.'}</div>
+            
+            <div class="product-image-container">
+                ${prod.imagen_url ? 
+                    `<img src="${prod.imagen_url}" alt="${prod.nombre}">` : 
+                    `<div class="no-image">Sin imagen<br>📦</div>`
+                }
+            </div>
+            
+            <input type="file" id="img-${prod.id}" class="product-image-input" accept="image/*" onchange="subirImagenProducto(event, ${prod.id})">
+            <button class="btn-upload-image" onclick="document.getElementById('img-${prod.id}').click()">
+                📁 ${prod.imagen_url ? 'Cambiar Imagen' : 'Subir Imagen'}
+            </button>
+        </div>
+    `).join('');
+}
+
+async function subirImagenProducto(event, productoId) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        alert('La imagen debe ser menor a 5MB');
+        return;
+    }
+    
+    const producto = allProducts.find(p => p.id === productoId);
+    if (!producto) return;
+    
+    // Crear nombre único para el archivo
+    const fileName = `${productoId}_${Date.now()}.${file.name.split('.').pop()}`;
+    
+    try {
+        // Subir a Supabase Storage
+        const { data, error } = await db.storage
+            .from('productos')
+            .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+        
+        if (error) throw error;
+        
+        // Obtener URL pública
+        const { data: urlData } = db.storage
+            .from('productos')
+            .getPublicUrl(fileName);
+        
+        const imageUrl = urlData.publicUrl;
+        
+        // Actualizar producto en BD
+        const { error: updateError } = await db
+            .from('productos')
+            .update({ imagen_url: imageUrl })
+            .eq('id', productoId);
+        
+        if (updateError) throw updateError;
+        
+        showToast('✅ Imagen subida correctamente');
+        
+        // Recargar productos
+        await cargarProductosAdmin();
+        
+    } catch (error) {
+        console.error('Error subiendo imagen:', error);
+        alert('❌ Error al subir la imagen: ' + error.message);
+    }
+}
+
+function filtrarProductosAdmin() {
+    const search = document.getElementById('searchProductAdmin').value.toLowerCase();
+    const filtered = allProducts.filter(p => 
+        p.nombre.toLowerCase().includes(search)
+    );
+    renderProductosAdmin(filtered);
+}
+
+// Modificar loadDashboard para cargar productos
+const originalLoadDashboard2 = loadDashboard;
+loadDashboard = async function() {
+    await originalLoadDashboard2();
+    await cargarProductosAdmin();
+};
