@@ -416,3 +416,105 @@ function showToast(message) {
     }, 3000);
 }
 
+/* ============================================
+   CONFIGURACIÓN DEL NEGOCIO
+   ============================================ */
+
+// Cargar configuración al iniciar el dashboard
+async function cargarConfigNegocio() {
+    try {
+        const { data, error } = await db
+            .from('config_negocio')
+            .select('*')
+            .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+            const elNombre = document.getElementById('configNombre');
+            const elLogo = document.getElementById('configLogo');
+            const elPreview = document.getElementById('logoPreviewImg');
+            
+            if (elNombre) elNombre.value = data.nombre_negocio || '';
+            if (elLogo) elLogo.value = data.logo_url || '';
+            if (elPreview) {
+                elPreview.src = data.logo_url || '';
+                elPreview.alt = data.nombre_negocio || 'Logo';
+            }
+            
+            // Actualizar logo en toda la app
+            actualizarLogoEnApp(data.logo_url, data.nombre_negocio);
+        }
+    } catch (error) {
+        console.error('Error cargando configuración:', error);
+    }
+}
+
+// Guardar configuración
+async function guardarConfig() {
+    const nombre = document.getElementById('configNombre').value.trim();
+    const logoUrl = document.getElementById('configLogo').value.trim();
+    
+    if (!nombre) {
+        alert('Ingresa el nombre del negocio');
+        return;
+    }
+    
+    try {
+        const { error } = await db
+            .from('config_negocio')
+            .update({
+                nombre_negocio: nombre,
+                logo_url: logoUrl,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', 1);
+        
+        if (error) throw error;
+        
+        showToast('✅ Configuración guardada correctamente');
+        
+        // Actualizar logo en toda la app
+        actualizarLogoEnApp(logoUrl, nombre);
+        
+    } catch (error) {
+        console.error('Error guardando configuración:', error);
+        alert('❌ Error al guardar la configuración');
+    }
+}
+
+// Actualizar logo en toda la aplicación
+function actualizarLogoEnApp(logoUrl, nombreNegocio) {
+    // Actualizar en el quiosco (index.html)
+    const logosQuiosco = document.querySelectorAll('.logo-3d img');
+    logosQuiosco.forEach(img => {
+        if (logoUrl) img.src = logoUrl;
+        if (nombreNegocio) img.alt = nombreNegocio;
+    });
+    
+    // Actualizar títulos
+    const titulos = document.querySelectorAll('.kiosk-title');
+    titulos.forEach(titulo => {
+        if (nombreNegocio && titulo.textContent.includes('BIENVENIDO')) {
+            titulo.innerHTML = `BIENVENIDO A LA<br>${nombreNegocio.toUpperCase()}`;
+        }
+    });
+}
+
+// Mostrar modal para subir logo
+function mostrarSubirLogo() {
+    const url = prompt('Ingresa la URL de tu logo:\n\nPuedes subir tu logo a:\n- https://imgbb.com/\n- https://postimages.org/\n\nY pegar el enlace aquí:');
+    
+    if (url) {
+        document.getElementById('configLogo').value = url;
+        document.getElementById('logoPreviewImg').src = url;
+    }
+}
+
+// Modificar loadDashboard para cargar config
+const originalLoadDashboard = loadDashboard;
+loadDashboard = async function() {
+    await originalLoadDashboard();
+    await cargarConfigNegocio();
+};
+
