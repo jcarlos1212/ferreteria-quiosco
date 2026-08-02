@@ -621,4 +621,11 @@ async function handleLogoUpload(event) {
         btn.disabled = false;
     }
 }
-
+/* ============================================
+   FORZAR CARGA DE CONFIG AL INICIAR
+   ============================================ */
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        cargarConfigNegocio();
+    }, 500);
+});
