@@ -1346,3 +1346,59 @@ body.light-mode .response {
 .response-products .product-image-small img:hover {
     transform: scale(1.05);
 }
+/* ============================================
+   RESPONSIVE PARA MÓVIL
+   ============================================ */
+@media (max-width: 768px) {
+    .response-products .product-item {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+    }
+    
+    .response-products .product-image-small {
+        width: 100%;
+        height: 120px;
+        margin-bottom: 10px;
+    }
+    
+    .response-products .product-info {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .response-products .product-name {
+        font-size: 16px;
+    }
+    
+    .response-products .product-price {
+        font-size: 18px;
+    }
+    
+    .response-products .quantity-control {
+        justify-content: center;
+        margin: 10px 0;
+    }
+    
+    .response-products .btn-add {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+    
+    /* Mejorar modal de cotización en móvil */
+    .modal-panel {
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .chat-container {
+        padding: 10px;
+    }
+    
+    .response-content {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+}
