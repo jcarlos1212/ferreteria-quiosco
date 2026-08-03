@@ -1143,3 +1143,123 @@ body.light-mode .response {
 .product-info {
     flex: 1;
 }
+
+/* ============================================
+   PRODUCTOS EN MODAL DE COTIZACIÓN
+   ============================================ */
+.response-products {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #4a5568;
+}
+
+.response-products .product-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: linear-gradient(145deg, #4a5568 0%, #2d3748 100%);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 2px solid #1a202c;
+}
+
+.response-products .product-image-small {
+    width: 70px;
+    height: 70px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #e2e8f0;
+}
+
+.response-products .product-image-small img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.response-products .no-image-small {
+    font-size: 30px;
+    color: #a0aec0;
+}
+
+.response-products .product-info {
+    flex: 1;
+}
+
+.response-products .product-name {
+    color: #e2e8f0;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.response-products .product-price {
+    color: #48bb78;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.response-products .product-stock {
+    color: #a0aec0;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.response-products .quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.response-products .qty-btn {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(145deg, #4a5568 0%, #2d3748 100%);
+    color: #e2e8f0;
+    border: 2px solid #1a202c;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.response-products .qty-btn:active {
+    transform: scale(0.95);
+}
+
+.response-products .qty-display {
+    color: #e2e8f0;
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+.response-products .btn-add {
+    padding: 10px 20px;
+    background: linear-gradient(145deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    border: 2px solid #2f855a;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.response-products .btn-add:active {
+    transform: scale(0.95);
+}
+
+.response-products .btn-add:disabled {
+    background: #999;
+    border-color: #666;
+    cursor: not-allowed;
+}
