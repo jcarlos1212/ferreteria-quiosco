@@ -1058,41 +1058,28 @@ async function cargarConfigDesdeQuiosco() {
             .single();
         
         if (error) {
-            console.log('No hay configuración personalizada, usando defaults');
+            console.log('No hay configuración personalizada');
             return;
         }
         
         if (data) {
-            // LIMPIAR logos primero
-            const logos = document.querySelectorAll('.logo-3d img');
-            logos.forEach(img => {
-                img.src = '';
-                img.style.opacity = '0';
-            });
-            
-            // Cargar nuevo logo después de limpiar
+            // Actualizar logo
             if (data.logo_url) {
-                setTimeout(() => {
-                    logos.forEach(img => {
-                        img.src = data.logo_url;
-                        img.style.opacity = '1';
-                    });
-                }, 100);
+                const logos = document.querySelectorAll('.logo-3d img');
+                logos.forEach(img => {
+                    img.src = data.logo_url;
+                    img.style.opacity = '1';
+                });
             }
             
             // Actualizar nombre
             if (data.nombre_negocio) {
-                setTimeout(() => {
-                    const titulos = document.querySelectorAll('.kiosk-title');
-                    titulos.forEach(titulo => {
-                        if (titulo.textContent.includes('BIENVENIDO')) {
-                            titulo.innerHTML = `BIENVENIDO A LA<br>${data.nombre_negocio.toUpperCase()}`;
-                        }
-                    });
-                    
-                    const subtitle = document.querySelector('.subtitle');
-                    if (subtitle) subtitle.textContent = data.nombre_negocio;
-                }, 100);
+                const titulos = document.querySelectorAll('.kiosk-title');
+                titulos.forEach(titulo => {
+                    if (titulo.textContent.includes('BIENVENIDO')) {
+                        titulo.innerHTML = `BIENVENIDO A LA<br>${data.nombre_negocio.toUpperCase()}`;
+                    }
+                });
             }
         }
     } catch (error) {
@@ -1104,7 +1091,7 @@ async function cargarConfigDesdeQuiosco() {
    ZOOM DE IMAGEN
    ============================================ */
 function openImageZoom(imageUrl, productName) {
-    event.stopPropagation(); // Evitar que el click se propague
+    if (event) event.stopPropagation();
     const modal = document.getElementById('imageZoomModal');
     const zoomedImage = document.getElementById('zoomedImage');
     const zoomedName = document.getElementById('zoomedImageName');
@@ -1112,7 +1099,7 @@ function openImageZoom(imageUrl, productName) {
     if (modal && zoomedImage) {
         zoomedImage.src = imageUrl;
         zoomedName.textContent = productName || '';
-        modal.style.display = 'flex'; // Forzar display
+        modal.style.display = 'flex';
         modal.classList.add('active');
     }
 }
@@ -1124,10 +1111,18 @@ function closeImageZoom() {
         modal.classList.remove('active');
     }
 }
-// Cerrar modal de zoom al hacer click fuera
+
+// Cerrar modal al hacer click fuera
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('imageZoomModal');
     if (modal && e.target === modal) {
+        closeImageZoom();
+    }
+});
+
+// Cerrar con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
         closeImageZoom();
     }
 });
