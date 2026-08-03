@@ -252,14 +252,15 @@ async function searchProducts() {
         
         if (error) throw error;
         
-        if (data && data.length > 0) {
-            const products = data.map(p => ({
-                id: p.id,
-                name: p.nombre,
-                price: parseFloat(p.precio),
-                stock: p.stock,
-                qty: 1
-            }));
+        const products = data.map(p => ({
+        id: p.id,
+        name: p.nombre,
+        price: parseFloat(p.precio),
+        stock: p.stock,
+        unidad: p.unidad,
+        imagen_url: p.imagen_url,  // ← AGREGADO
+        qty: 1
+        }));
             displayProducts(products);
         } else {
             productList.innerHTML = '<div class="empty-state">No se encontraron productos</div>';
