@@ -826,22 +826,6 @@ function speakResponse() {
 /* ============================================
    IMPRIMIR COTIZACIÓN
    ============================================ */
-
-function printQuote() {
-    if (!currentResponse) return;
-    
-    const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-    const numeroCotizacion = 'COT-' + Date.now().toString().slice(-6);
-    
-    // Obtener productos del carrito si existen
-    const cartItems = cart.map(item => ({
-        name: item.name,
-        price: item.price,
-        qty: item.qty,
-        subtotal: item.price * item.qty
-    }));
-    
-    const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
     
  function printQuote() {
     if (!currentResponse) return;
