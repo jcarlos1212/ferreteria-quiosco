@@ -1098,3 +1098,10 @@ function closeImageZoom() {
         modal.classList.remove('active');
     }
 }
+// Cerrar modal de zoom al hacer click fuera
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('imageZoomModal');
+    if (modal && e.target === modal) {
+        closeImageZoom();
+    }
+});
