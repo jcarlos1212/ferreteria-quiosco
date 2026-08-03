@@ -872,12 +872,7 @@ function printQuote() {
                 <div class="client-label">Cliente</div>
                 <div class="client-name">${clientName || 'Cliente General'}</div>
             </div>
-            
-            <div class="ai-response">
-                <div class="ai-title">📋 Asesoramiento del Asistente Virtual</div>
-                <div class="ai-text">${currentResponse.replace(/\n/g, '<br>')}</div>
-            </div>
-            
+                                   
             ${cartItems.length > 0 ? `
             <div class="products-table">
                 <div class="products-title"> Productos Cotizados</div>
