@@ -677,11 +677,33 @@ async function sendQuestion() {
         }
         
         // MOSTRAR PRODUCTOS VISUALES
-        const query = question.toLowerCase();
-        const productosFiltrados = productos.filter(p => 
-            p.nombre.toLowerCase().includes(query) ||
-            p.categoria?.toLowerCase().includes(query)
+
+       // Búsqueda inteligente: extraer palabras clave
+const query = question.toLowerCase();
+const palabras = query.split(/\s+/).filter(p => p.length > 2); // Palabras de más de 2 letras
+
+const productosFiltrados = productos.filter(p => {
+    const nombre = p.nombre.toLowerCase();
+    const categoria = (p.categoria || '').toLowerCase();
+    
+    // Si hay palabras clave, buscar que TODAS estén presentes
+    if (palabras.length > 0) {
+        const todasCoinciden = palabras.every(palabra => 
+            nombre.includes(palabra) || categoria.includes(palabra)
         );
+        return todasCoinciden;
+    }
+    
+    // Si no hay palabras clave útiles, mostrar todos
+    return nombre.includes(query) || categoria.includes(query);
+}).sort((a, b) => {
+    // Ordenar por relevancia: coincidencia exacta primero
+    const aNombre = a.nombre.toLowerCase();
+    const bNombre = b.nombre.toLowerCase();
+    if (aNombre.includes(query) && !bNombre.includes(query)) return -1;
+    if (!aNombre.includes(query) && bNombre.includes(query)) return 1;
+    return 0;
+});
         
         const responseProducts = document.getElementById('responseProducts');
         if (responseProducts) {
