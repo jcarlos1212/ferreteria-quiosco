@@ -299,9 +299,9 @@ function displayProducts(products) {
         <div class="product-item">
             <div class="product-image-small">
                 ${imagen_url ? 
-                    `<img src="${imagen_url}" alt="${nombre}">` : 
-                    `<div class="no-image-small">📦</div>`
-                }
+                 `<img src="${imagen_url}" alt="${nombre}" onclick="openImageZoom('${imagen_url}', '${nombre.replace(/'/g, "\\'")}')">` : 
+                 `<div class="no-image-small"></div>`
+                 }
             </div>
             <div class="product-info">
                 <div class="product-name">${nombre}</div>
