@@ -200,5 +200,15 @@
     
     <!-- Scripts -->
     <script src="script.js"></script>
+
+    <!-- Modal de Zoom de Imagen -->
+<div id="imageZoomModal" class="image-zoom-modal" style="display: none;">
+    <div class="image-zoom-content" onclick="event.stopPropagation()">
+        <span class="image-zoom-close" onclick="closeImageZoom()">&times;</span>
+        <img id="zoomedImage" src="" alt="Imagen ampliada">
+        <div id="zoomedImageName" class="zoomed-image-name"></div>
+    </div>
+</div>
+    
 </body>
 </html>
