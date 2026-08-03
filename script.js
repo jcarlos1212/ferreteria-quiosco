@@ -1078,6 +1078,7 @@ async function cargarConfigDesdeQuiosco() {
    ZOOM DE IMAGEN
    ============================================ */
 function openImageZoom(imageUrl, productName) {
+    event.stopPropagation(); // Evitar que el click se propague
     const modal = document.getElementById('imageZoomModal');
     const zoomedImage = document.getElementById('zoomedImage');
     const zoomedName = document.getElementById('zoomedImageName');
@@ -1085,6 +1086,7 @@ function openImageZoom(imageUrl, productName) {
     if (modal && zoomedImage) {
         zoomedImage.src = imageUrl;
         zoomedName.textContent = productName || '';
+        modal.style.display = 'flex'; // Forzar display
         modal.classList.add('active');
     }
 }
@@ -1092,13 +1094,7 @@ function openImageZoom(imageUrl, productName) {
 function closeImageZoom() {
     const modal = document.getElementById('imageZoomModal');
     if (modal) {
+        modal.style.display = 'none';
         modal.classList.remove('active');
     }
 }
-
-// Cerrar con tecla ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeImageZoom();
-    }
-});
