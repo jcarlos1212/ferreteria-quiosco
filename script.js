@@ -1051,3 +1051,32 @@ async function cargarConfigDesdeQuiosco() {
         console.log('Error cargando config:', error.message);
     }
 }
+
+/* ============================================
+   ZOOM DE IMAGEN
+   ============================================ */
+function openImageZoom(imageUrl, productName) {
+    const modal = document.getElementById('imageZoomModal');
+    const zoomedImage = document.getElementById('zoomedImage');
+    const zoomedName = document.getElementById('zoomedImageName');
+    
+    if (modal && zoomedImage) {
+        zoomedImage.src = imageUrl;
+        zoomedName.textContent = productName || '';
+        modal.classList.add('active');
+    }
+}
+
+function closeImageZoom() {
+    const modal = document.getElementById('imageZoomModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+// Cerrar con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageZoom();
+    }
+});
