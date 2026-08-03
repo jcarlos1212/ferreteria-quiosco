@@ -639,7 +639,7 @@ async function sendQuestion() {
         // Obtener contexto de productos disponibles
         const { data: productos, error: productosError } = await db
             .from('productos')
-            .select('nombre, categoria, precio, stock, unidad')
+            .select('id, nombre, categoria, precio, stock, unidad, imagen_url')
             .eq('estado', 'activo');
         
         let contextoInventario = '';
@@ -664,50 +664,64 @@ async function sendQuestion() {
         
         const data = await response.json();
         
-       if (!response.ok) {
-    throw new Error(data.error || 'Error en la respuesta de la IA');
-}
-
-currentResponse = data.respuesta;
-currentAudio = data.audio;
-
-// Mostrar respuesta de texto
-if (responseContent) {
-    responseContent.innerHTML = currentResponse.replace(/\n/g, '<br>');
-}
-
-// EXTRAER PRODUCTOS MENCIONADOS Y MOSTRARLOS
-const query = question.toLowerCase();
-const productosFiltrados = productos.filter(p => 
-    p.nombre.toLowerCase().includes(query) ||
-    p.categoria?.toLowerCase().includes(query)
-);
-
-if (productosFiltrados.length > 0) {
-    // Formatear productos para display
-    const productsForDisplay = productosFiltrados.map(p => ({
-        id: p.id,
-        name: p.nombre,
-        price: parseFloat(p.precio),
-        stock: p.stock,
-        unidad: p.unidad,
-        imagen_url: p.imagen_url,
-        qty: 1
-    }));
-    
-    // Mostrar productos visualmente después de la respuesta
-    setTimeout(() => {
-        displayProducts(productsForDisplay);
-    }, 500);
-}
-
-if (responseActions) {
-    responseActions.style.display = 'flex';
-}
-
-if (currentAudio) {
-    playElevenLabsAudio(currentAudio);
-}
+        if (!response.ok) {
+            throw new Error(data.error || 'Error en la respuesta de la IA');
+        }
+        
+        currentResponse = data.respuesta;
+        currentAudio = data.audio;
+        
+        // Mostrar respuesta de texto
+        if (responseContent) {
+            responseContent.innerHTML = currentResponse.replace(/\n/g, '<br>');
+        }
+        
+        // MOSTRAR PRODUCTOS VISUALES
+        const query = question.toLowerCase();
+        const productosFiltrados = productos.filter(p => 
+            p.nombre.toLowerCase().includes(query) ||
+            p.categoria?.toLowerCase().includes(query)
+        );
+        
+        const responseProducts = document.getElementById('responseProducts');
+        if (responseProducts) {
+            if (productosFiltrados.length > 0) {
+                responseProducts.style.display = 'block';
+                responseProducts.innerHTML = productosFiltrados.map((prod, idx) => `
+                    <div class="product-item">
+                        <div class="product-image-small">
+                            ${prod.imagen_url ? 
+                                `<img src="${prod.imagen_url}" alt="${prod.nombre}">` : 
+                                `<div class="no-image-small">📦</div>`
+                            }
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">${prod.nombre}</div>
+                            <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
+                            <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
+                            <div class="quantity-control">
+                                <button class="qty-btn" onclick="vibrate(50); decreaseQty(${idx})">-</button>
+                                <span class="qty-display" id="qty-${idx}">1</span>
+                                <button class="qty-btn" onclick="vibrate(50); increaseQty(${idx})">+</button>
+                            </div>
+                        </div>
+                        <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${idx}, '${prod.nombre.replace(/'/g, "\\'")}', ${prod.precio})" ${prod.stock === 0 ? 'disabled' : ''}>
+                            Agregar
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                responseProducts.style.display = 'none';
+            }
+        }
+        
+        if (responseActions) {
+            responseActions.style.display = 'flex';
+        }
+        
+        if (currentAudio) {
+            playElevenLabsAudio(currentAudio);
+        }
         
     } catch (error) {
         console.error('Error:', error);
