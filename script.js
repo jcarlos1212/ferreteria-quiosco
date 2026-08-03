@@ -843,8 +843,35 @@ function printQuote() {
     
     const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
     
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+ function printQuote() {
+    if (!currentResponse) return;
+    
+    const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+    const numeroCotizacion = 'COT-' + Date.now().toString().slice(-6);
+    
+    // Obtener nombre del negocio desde config
+    const negocioNombre = document.querySelector('.kiosk-title')?.textContent?.replace('BIENVENIDO A LA\n', '') || 'Ferretería El Constructor';
+    
+    const cartItems = cart.map(item => ({
+        name: item.name,
+        price: item.price,
+        qty: item.qty,
+        subtotal: item.price * item.qty
+    }));
+    
+    const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+    
+    // Crear iframe oculto para impresión
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
+    
+    printFrame.contentDocument.write(`
         <!DOCTYPE html>
         <html>
         <head>
@@ -862,9 +889,6 @@ function printQuote() {
                 .client-info { margin-bottom: 30px; padding: 15px; background: #f7fafc; border-left: 4px solid #4a5568; border-radius: 5px; }
                 .client-label { font-size: 12px; color: #718096; text-transform: uppercase; }
                 .client-name { font-size: 16px; color: #2d3748; font-weight: 600; margin-top: 5px; }
-                .ai-response { margin: 30px 0; padding: 20px; background: #f7fafc; border-radius: 8px; }
-                .ai-title { font-size: 14px; color: #4a5568; margin-bottom: 10px; font-weight: 600; }
-                .ai-text { line-height: 1.8; color: #4a5568; }
                 .products-table { margin: 30px 0; }
                 .products-title { font-size: 18px; color: #2d3748; margin-bottom: 15px; font-weight: 600; }
                 table { width: 100%; border-collapse: collapse; }
@@ -881,7 +905,7 @@ function printQuote() {
             <div class="header">
                 <div>
                     <div class="logo">FC</div>
-                    <div class="company-name">Ferretería El Constructor</div>
+                    <div class="company-name">${negocioNombre}</div>
                     <div class="tagline">Tu socio en construcción</div>
                 </div>
                 <div class="quote-info">
@@ -894,7 +918,7 @@ function printQuote() {
                 <div class="client-label">Cliente</div>
                 <div class="client-name">${clientName || 'Cliente General'}</div>
             </div>
-                                   
+            
             ${cartItems.length > 0 ? `
             <div class="products-table">
                 <div class="products-title"> Productos Cotizados</div>
@@ -927,20 +951,22 @@ function printQuote() {
             
             <div class="footer">
                 <div>Gracias por preferirnos</div>
-                <div class="phone">📞 (01) 234-5678</div>
+                <div class="phone"> (01) 234-5678</div>
                 <div style="margin-top: 10px; font-size: 12px;">Esta cotización tiene una validez de 7 días</div>
             </div>
             
             <script>
                 window.onload = function() {
-                    window.print();
-                    window.close();
+                    setTimeout(function() {
+                        window.print();
+                        window.parent.document.body.removeChild(window.parent.document.querySelector('iframe'));
+                    }, 500);
                 };
             </script>
         </body>
         </html>
     `);
-    printWindow.document.close();
+    printFrame.contentDocument.close();
 }
 
 /* ============================================
