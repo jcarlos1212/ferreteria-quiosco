@@ -1127,7 +1127,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-   });
+
 
 // ============================================
 // INICIALIZACIÓN
