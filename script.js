@@ -664,23 +664,50 @@ async function sendQuestion() {
         
         const data = await response.json();
         
-        if (!response.ok) {
-            throw new Error(data.error || 'Error en la respuesta de la IA');
-        }
-        
-        currentResponse = data.respuesta;
-        currentAudio = data.audio;
-        
-        if (responseContent) {
-            responseContent.innerHTML = currentResponse.replace(/\n/g, '<br>');
-        }
-        if (responseActions) {
-            responseActions.style.display = 'flex';
-        }
-        
-        if (currentAudio) {
-            playElevenLabsAudio(currentAudio);
-        }
+       if (!response.ok) {
+    throw new Error(data.error || 'Error en la respuesta de la IA');
+}
+
+currentResponse = data.respuesta;
+currentAudio = data.audio;
+
+// Mostrar respuesta de texto
+if (responseContent) {
+    responseContent.innerHTML = currentResponse.replace(/\n/g, '<br>');
+}
+
+// EXTRAER PRODUCTOS MENCIONADOS Y MOSTRARLOS
+const query = question.toLowerCase();
+const productosFiltrados = productos.filter(p => 
+    p.nombre.toLowerCase().includes(query) ||
+    p.categoria?.toLowerCase().includes(query)
+);
+
+if (productosFiltrados.length > 0) {
+    // Formatear productos para display
+    const productsForDisplay = productosFiltrados.map(p => ({
+        id: p.id,
+        name: p.nombre,
+        price: parseFloat(p.precio),
+        stock: p.stock,
+        unidad: p.unidad,
+        imagen_url: p.imagen_url,
+        qty: 1
+    }));
+    
+    // Mostrar productos visualmente después de la respuesta
+    setTimeout(() => {
+        displayProducts(productsForDisplay);
+    }, 500);
+}
+
+if (responseActions) {
+    responseActions.style.display = 'flex';
+}
+
+if (currentAudio) {
+    playElevenLabsAudio(currentAudio);
+}
         
     } catch (error) {
         console.error('Error:', error);
