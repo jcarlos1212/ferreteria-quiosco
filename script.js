@@ -1126,3 +1126,18 @@ document.addEventListener('keydown', function(e) {
         closeImageZoom();
     }
 });
+
+   });
+
+// ============================================
+// INICIALIZACIÓN
+// ============================================
+
+// Cargar configuración del negocio al iniciar
+document.addEventListener('DOMContentLoaded', function() {
+    cargarConfigDesdeQuiosco();
+});
+
+// Exportar funciones para uso global
+window.openImageZoom = openImageZoom;
+window.closeImageZoom = closeImageZoom;
