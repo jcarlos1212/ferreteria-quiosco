@@ -240,7 +240,7 @@ async function searchProducts() {
     const productList = document.getElementById('productList');
     if (!productList) return;
     
-    productList.innerHTML = '<div class="loading">🔍 Buscando productos...</div>';
+    productList.innerHTML = '<div class="loading"> Buscando productos...</div>';
     productQuantities = {};
     
     try {
@@ -250,28 +250,27 @@ async function searchProducts() {
             .ilike('nombre', `%${query}%`)
             .eq('estado', 'activo');
         
-      try {
-    if (error) throw error;
-    
-    if (data && data.length > 0) {
-        const products = data.map(p => ({
-            id: p.id,
-            name: p.nombre,
-            price: parseFloat(p.precio),
-            stock: p.stock,
-            unidad: p.unidad,
-            imagen_url: p.imagen_url,
-            qty: 1
-        }));
-        displayProducts(products);
-    } else {
-        productList.innerHTML = '<div class="empty-state">No se encontraron productos</div>';
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            const products = data.map(p => ({
+                id: p.id,
+                name: p.nombre,
+                price: parseFloat(p.precio),
+                stock: p.stock,
+                unidad: p.unidad,
+                imagen_url: p.imagen_url,
+                qty: 1
+            }));
+            displayProducts(products);
+        } else {
+            productList.innerHTML = '<div class="empty-state">No se encontraron productos</div>';
+        }
+    } catch (error) {
+        console.error('Error buscando productos:', error);
+        productList.innerHTML = '<div class="empty-state">Error de conexión. Intenta de nuevo.</div>';
     }
-} catch (error) {
-    console.error('Error:', error);
-    productList.innerHTML = '<div class="empty-state">Error de conexión. Intenta de nuevo.</div>';
 }
-
 /* ============================================
    MOSTRAR PRODUCTOS
    ============================================ */
