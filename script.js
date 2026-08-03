@@ -804,14 +804,125 @@ function speakResponse() {
 /* ============================================
    IMPRIMIR COTIZACIÓN
    ============================================ */
+
 function printQuote() {
     if (!currentResponse) return;
     
     const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
     const numeroCotizacion = 'COT-' + Date.now().toString().slice(-6);
     
+    // Obtener productos del carrito si existen
+    const cartItems = cart.map(item => ({
+        name: item.name,
+        price: item.price,
+        qty: item.qty,
+        subtotal: item.price * item.qty
+    }));
+    
+    const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+    
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>Cotización ${numeroCotizacion}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Tahoma,sans-serif;padding:40px;max-width:800px;margin:0 auto;background:white;color:#333}.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #667eea;padding-bottom:20px;margin-bottom:30px}.logo-section{display:flex;align-items:center;gap:20px}.logo{width:80px;height:80px;background:#667eea;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:32px;font-weight:bold}.company-info h1{color:#667eea;font-size:28px;margin-bottom:5px}.company-info p{color:#666;font-size:14px}.quote-info{text-align:right}.quote-info h2{color:#667eea;font-size:28px;margin-bottom:10px;font-weight:bold}.quote-info p{color:#666;font-size:14px;margin-bottom:5px}.client-section{background:#f8f9fa;padding:15px 20px;border-radius:8px;margin-bottom:30px;border-left:4px solid #667eea}.client-section h3{color:#667eea;margin-bottom:8px;font-size:16px}.client-section p{color:#666;font-size:14px}.content{padding:20px;line-height:1.6}.footer{margin-top:40px;padding-top:20px;border-top:2px solid #667eea;display:flex;justify-content:space-between;align-items:flex-end}.contact-info{display:flex;flex-direction:column;gap:8px}.contact-info span{color:#666;font-size:14px}@media print{body{padding:20px}}</style></head><body><div class="header"><div class="logo-section"><div class="logo">FC</div><div class="company-info"><h1>Ferretería El Constructor</h1><p>Tu socio en construcción</p></div></div><div class="quote-info"><h2>COTIZACIÓN</h2><p><strong>N°:</strong> ${numeroCotizacion}</p><p><strong>Fecha:</strong> ${fecha}</p></div></div><div class="client-section"><h3>📋 Detalle de la Cotización</h3><p>Cliente: ${clientName || 'Walk-In (Quiosco)'}</p></div><div class="content">${currentResponse.replace(/\n/g, '<br>')}</div><div class="footer"><div class="contact-info"><span>📞 (01) 234-5678</span><span>✉️ ventas@ferreteriaelconstructor.com</span><span>📍 Av. Principal 123</span></div></div><div class="no-print" style="text-align:center;margin-top:30px"><button onclick="window.print()" style="padding:15px 30px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600">🖨️ Imprimir Cotización</button></div><script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Cotización ${numeroCotizacion}</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+                body { padding: 40px; background: white; color: #333; }
+                .header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 3px solid #4a5568; padding-bottom: 20px; }
+                .logo { font-size: 32px; font-weight: bold; color: #4a5568; }
+                .company-name { font-size: 24px; color: #2d3748; }
+                .tagline { font-size: 14px; color: #718096; }
+                .quote-info { text-align: right; }
+                .quote-number { font-size: 18px; font-weight: bold; color: #4a5568; }
+                .date { font-size: 14px; color: #718096; margin-top: 5px; }
+                .client-info { margin-bottom: 30px; padding: 15px; background: #f7fafc; border-left: 4px solid #4a5568; border-radius: 5px; }
+                .client-label { font-size: 12px; color: #718096; text-transform: uppercase; }
+                .client-name { font-size: 16px; color: #2d3748; font-weight: 600; margin-top: 5px; }
+                .ai-response { margin: 30px 0; padding: 20px; background: #f7fafc; border-radius: 8px; }
+                .ai-title { font-size: 14px; color: #4a5568; margin-bottom: 10px; font-weight: 600; }
+                .ai-text { line-height: 1.8; color: #4a5568; }
+                .products-table { margin: 30px 0; }
+                .products-title { font-size: 18px; color: #2d3748; margin-bottom: 15px; font-weight: 600; }
+                table { width: 100%; border-collapse: collapse; }
+                th { background: #4a5568; color: white; padding: 12px; text-align: left; font-weight: 600; }
+                td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+                tr:nth-child(even) { background: #f7fafc; }
+                .text-right { text-align: right; }
+                .total-row { font-weight: bold; font-size: 18px; background: #edf2f7 !important; }
+                .footer { margin-top: 50px; padding-top: 20px; border-top: 2px solid #e2e8f0; font-size: 14px; color: #718096; }
+                .phone { margin-top: 10px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div>
+                    <div class="logo">FC</div>
+                    <div class="company-name">Ferretería El Constructor</div>
+                    <div class="tagline">Tu socio en construcción</div>
+                </div>
+                <div class="quote-info">
+                    <div class="quote-number">N°: ${numeroCotizacion}</div>
+                    <div class="date">Fecha: ${fecha}</div>
+                </div>
+            </div>
+            
+            <div class="client-info">
+                <div class="client-label">Cliente</div>
+                <div class="client-name">${clientName || 'Cliente General'}</div>
+            </div>
+            
+            <div class="ai-response">
+                <div class="ai-title">📋 Asesoramiento del Asistente Virtual</div>
+                <div class="ai-text">${currentResponse.replace(/\n/g, '<br>')}</div>
+            </div>
+            
+            ${cartItems.length > 0 ? `
+            <div class="products-table">
+                <div class="products-title"> Productos Cotizados</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-right">Cantidad</th>
+                            <th class="text-right">Precio Unit.</th>
+                            <th class="text-right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${cartItems.map(item => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td class="text-right">${item.qty}</td>
+                                <td class="text-right">S/ ${item.price.toFixed(2)}</td>
+                                <td class="text-right">S/ ${item.subtotal.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                        <tr class="total-row">
+                            <td colspan="3" class="text-right">TOTAL:</td>
+                            <td class="text-right">S/ ${total.toFixed(2)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            ` : '<div style="margin: 20px 0; padding: 15px; background: #fff5f5; border-left: 4px solid #fc8181; border-radius: 5px; color: #c53030;">No hay productos agregados al carrito</div>'}
+            
+            <div class="footer">
+                <div>Gracias por preferirnos</div>
+                <div class="phone">📞 (01) 234-5678</div>
+                <div style="margin-top: 10px; font-size: 12px;">Esta cotización tiene una validez de 7 días</div>
+            </div>
+            
+            <script>
+                window.onload = function() {
+                    window.print();
+                    window.close();
+                };
+            </script>
+        </body>
+        </html>
+    `);
     printWindow.document.close();
 }
 
