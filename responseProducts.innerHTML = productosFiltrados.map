@@ -713,9 +713,9 @@ const productosFiltrados = productos.filter(p => {
                     <div class="product-item">
                         <div class="product-image-small">
                             ${prod.imagen_url ? 
-                                `<img src="${prod.imagen_url}" alt="${prod.nombre}">` : 
-                                `<div class="no-image-small">📦</div>`
-                            }
+                           `<img src="${prod.imagen_url}" alt="${prod.nombre}" onclick="openImageZoom('${prod.imagen_url}', '${prod.nombre.replace(/'/g, "\\'")}')">` : 
+                           `<div class="no-image-small">📦</div>`
+                             }
                         </div>
                         <div class="product-info">
                             <div class="product-name">${prod.nombre}</div>
