@@ -919,14 +919,6 @@ body {
 }
 
 .product-card {
-    background: linear-gradient(145deg, #4a5568 0%, #2d3748 100%);
-    border-radius: 15px;
-    padding: 20px;
-    border: 2px solid #1a202c;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.product-card {
     background: linear-gradient(145deg, #ffffff 0%, #f7fafc 100%); /* ← Blanco */
     border-radius: 15px;
     padding: 20px;
