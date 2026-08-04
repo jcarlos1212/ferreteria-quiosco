@@ -994,25 +994,10 @@ function showToast(message) {
 }
 
 /* ============================================
-   ACCESO SECRETO AL PANEL ADMIN
+   ACCESO AL PANEL ADMIN
    ============================================ */
-function openAdminPanel() {
-    const password = prompt('🔐 Acceso Administrativo\n\nIngresa la contraseña:');
-    
-    if (password === 'admin2026') {
-        // Usar window.location.href en lugar de window.open
-        window.location.href = 'admin.html';
-    } else if (password !== null) {
-        alert('❌ Contraseña incorrecta');
-    }
-}
-// Atajo de teclado secreto: Ctrl + Shift + A
-document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.shiftKey && e.key === 'A') {
-        e.preventDefault();
-        openAdminPanel();
-    }
-});
+// El acceso admin se maneja directamente en admin.html
+// No hay contraseña hardcodeada en el frontend del quiosco
 
 /* ============================================
    MODO OSCURO / CLARO
