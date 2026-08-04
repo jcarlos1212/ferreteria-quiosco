@@ -1071,6 +1071,7 @@ body.light-mode .response {
 
 /* ============================================
    PRODUCTOS EN MODAL DE COTIZACIÓN
+   (COPIADO DE COMPRAR - FUNCIONA PERFECTO)
    ============================================ */
 .response-products {
     margin-top: 20px;
@@ -1080,18 +1081,23 @@ body.light-mode .response {
 
 .response-products .product-item {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 15px;
     background: linear-gradient(145deg, #4a5568 0%, #2d3748 100%);
     border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
     border: 2px solid #1a202c;
+    box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.3),
+    inset 0 2px 5px rgba(255, 255, 255, 0.1);
 }
 
 .response-products .product-image-small {
-    width: 70px;
-    height: 70px;
+    width: 100%;
+    max-width: 100%;
+    height: 200px;
     background: white;
     border-radius: 10px;
     display: flex;
@@ -1100,57 +1106,66 @@ body.light-mode .response {
     overflow: hidden;
     flex-shrink: 0;
     border: 2px solid #e2e8f0;
+    margin: 0 auto;
 }
 
 .response-products .product-image-small img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+    padding: 15px;
 }
 
 .response-products .no-image-small {
-    font-size: 30px;
+    font-size: 50px;
     color: #a0aec0;
 }
 
 .response-products .product-info {
-    flex: 1;
+    width: 100%;
+    text-align: center;
+    padding: 0;
 }
 
 .response-products .product-name {
     color: #e2e8f0;
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 5px;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
 }
 
 .response-products .product-price {
     color: #48bb78;
-    font-size: 16px;
+    font-size: 24px;
     font-weight: bold;
-    margin-bottom: 3px;
+    margin-bottom: 8px;
+    text-align: center;
 }
 
 .response-products .product-stock {
     color: #a0aec0;
-    font-size: 13px;
-    margin-bottom: 10px;
+    font-size: 14px;
+    margin-bottom: 15px;
+    text-align: center;
 }
 
 .response-products .quantity-control {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0;
 }
 
 .response-products .qty-btn {
-    width: 35px;
-    height: 35px;
+    width: 50px;
+    height: 50px;
     background: linear-gradient(145deg, #4a5568 0%, #2d3748 100%);
     color: #e2e8f0;
     border: 2px solid #1a202c;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 24px;
     font-weight: bold;
     cursor: pointer;
 }
@@ -1161,22 +1176,26 @@ body.light-mode .response {
 
 .response-products .qty-display {
     color: #e2e8f0;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: bold;
-    min-width: 30px;
+    min-width: 40px;
     text-align: center;
 }
 
 .response-products .btn-add {
-    padding: 10px 20px;
-    background: linear-gradient(145deg, #48bb78 0%, #38a169 100%);
+    width: 100%;
+    max-width: 100%;
+    padding: 18px;
+    background: linear-gradient(145deg, #48bb78 0%, #2f855a 100%);
     color: white;
-    border: 2px solid #2f855a;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    border: 3px solid #1a202c;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
     cursor: pointer;
     white-space: nowrap;
+    min-height: 60px;
+    margin-top: 10px;
 }
 
 .response-products .btn-add:active {
@@ -1188,6 +1207,7 @@ body.light-mode .response {
     border-color: #666;
     cursor: not-allowed;
 }
+
 
 /* ============================================
    MODAL DE ZOOM DE IMAGEN
