@@ -94,15 +94,17 @@ function showScreen(screenId) {
 /* ============================================
    CARGAR DASHBOARD
    ============================================ */
+/* ============================================
+   CARGAR DASHBOARD
+   ============================================ */
 async function loadDashboard() {
     await Promise.all([
         loadVentas(),
         loadStockBajo(),
-        loadTopProductos()
+        loadTopProductos(),
+        cargarConfigNegocio(),
+        cargarProductosAdmin()
     ]);
-    
-    // Cargar configuración del negocio
-    await cargarConfigNegocio();
 }
 
 /* ============================================
@@ -566,12 +568,6 @@ function mostrarSubirLogo() {
     }
 }
 
-// Modificar loadDashboard para cargar config
-const originalLoadDashboard = loadDashboard;
-loadDashboard = async function() {
-    await originalLoadDashboard();
-    await cargarConfigNegocio();
-};
 
 /* ============================================
    SUBIR LOGO DESDE ARCHIVO LOCAL
@@ -746,9 +742,3 @@ function filtrarProductosAdmin() {
     renderProductosAdmin(filtered);
 }
 
-// Modificar loadDashboard para cargar productos
-const originalLoadDashboard2 = loadDashboard;
-loadDashboard = async function() {
-    await originalLoadDashboard2();
-    await cargarProductosAdmin();
-};
