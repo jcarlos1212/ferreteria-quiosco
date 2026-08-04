@@ -324,28 +324,29 @@ function displayProducts(products) {
 /* ============================================
    AUMENTAR CANTIDAD
    ============================================ */
-function increaseQty(idx) {
-    if (!productQuantities[idx]) productQuantities[idx] = 1;
-    productQuantities[idx]++;
+function increaseQty(productId) {
+    if (!productQuantities[productId]) productQuantities[productId] = 1;
+    productQuantities[productId]++;
     
-    const qtyDisplay = document.getElementById(`qty-${idx}`);
+    const qtyDisplay = document.getElementById(`qty-${productId}`);
     if (qtyDisplay) {
-        qtyDisplay.textContent = productQuantities[idx];
+        qtyDisplay.textContent = productQuantities[productId];
     }
 }
 
 /* ============================================
    DISMINUIR CANTIDAD
    ============================================ */
-function decreaseQty(idx) {
-    if (!productQuantities[idx]) productQuantities[idx] = 1;
+
+function decreaseQty(productId) {
+    if (!productQuantities[productId]) productQuantities[productId] = 1;
     
-    if (productQuantities[idx] > 1) {
-        productQuantities[idx]--;
+    if (productQuantities[productId] > 1) {
+        productQuantities[productId]--;
         
-        const qtyDisplay = document.getElementById(`qty-${idx}`);
+        const qtyDisplay = document.getElementById(`qty-${productId}`);
         if (qtyDisplay) {
-            qtyDisplay.textContent = productQuantities[idx];
+            qtyDisplay.textContent = productQuantities[productId];
         }
     }
 }
@@ -353,8 +354,8 @@ function decreaseQty(idx) {
 /* ============================================
    AGREGAR AL CARRITO CON CANTIDAD
    ============================================ */
-function addToCartWithQty(idx, name, price) {
-    const qty = productQuantities[idx] || 1;
+function addToCartWithQty(productId, name, price) {
+    const qty = productQuantities[productId] || 1;
     const existing = cart.find(item => item.name === name);
     
     if (existing) {
@@ -368,12 +369,13 @@ function addToCartWithQty(idx, name, price) {
     // Mostrar notificación toast en lugar de alert
     showToast(`${name} x${qty} agregado al carrito`);
     
-    productQuantities[idx] = 1;
-    const qtyDisplay = document.getElementById(`qty-${idx}`);
+    productQuantities[productId] = 1;
+    const qtyDisplay = document.getElementById(`qty-${productId}`);
     if (qtyDisplay) {
         qtyDisplay.textContent = '1';
     }
 }
+
 /* ============================================
    ACTUALIZAR CONTADOR DEL CARRITO
    ============================================ */
