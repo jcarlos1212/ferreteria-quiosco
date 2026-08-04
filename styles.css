@@ -1368,52 +1368,63 @@ body.light-mode .response {
 }
 
 /* ============================================
-   RESPONSIVE UNIFICADO - MÓVIL PROFESIONAL
-   ============================================ */
-/* ============================================
-   RESPONSIVE UNIFICADO - MÓVIL PROFESIONAL
+   RESPONSIVE MÓVIL - CON SCROLL FUNCIONAL
    ============================================ */
 @media (max-width: 768px) {
-    /* Modal con margen lateral */
+    /* Modal ocupa toda la pantalla */
     .modal {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
         width: 100% !important;
-        height: 100vh !important;
+        height: 100% !important;
         max-width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
         border-radius: 0 !important;
-        background: #1a202c !important; /* Fondo oscuro detrás */
+        z-index: 1000 !important;
+        overflow: hidden !important;
     }
     
-    /* Panel con margen lateral elegante */
+    /* Panel con margen lateral */
     .modal-panel {
-        width: 92% !important;
-        max-width: 92% !important;
+        width: 94% !important;
+        max-width: 94% !important;
         height: 96vh !important;
         max-height: 96vh !important;
         margin: 2vh auto !important;
         border-radius: 20px !important;
         overflow: hidden !important;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
     
+    /* Header fijo arriba */
     .modal-header {
-        padding: 20px 20px 15px 20px !important;
+        padding: 15px 20px !important;
+        flex-shrink: 0 !important;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
     }
     
     .modal-title {
-        font-size: 24px !important;
+        font-size: 22px !important;
+        margin: 0 !important;
     }
     
     .btn-close {
-        width: 45px !important;
-        height: 45px !important;
-        font-size: 22px !important;
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 20px !important;
     }
     
-    /* Chat container con padding lateral */
+    /* CONTENEDOR CON SCROLL - ESTO ES CLAVE */
     .chat-container {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
         padding: 15px 20px 20px 20px !important;
+        -webkit-overflow-scrolling: touch !important; /* Scroll suave en iOS */
+        scroll-behavior: smooth !important;
     }
     
     .chat-input-wrapper {
@@ -1427,12 +1438,14 @@ body.light-mode .response {
         padding: 15px 18px !important;
         font-size: 16px !important;
         border-radius: 12px !important;
+        box-sizing: border-box !important;
     }
     
     .voice-btn {
         width: 100% !important;
         padding: 15px !important;
         border-radius: 12px !important;
+        box-sizing: border-box !important;
     }
     
     #sendBtn {
@@ -1441,20 +1454,23 @@ body.light-mode .response {
         font-size: 18px !important;
         font-weight: bold !important;
         border-radius: 12px !important;
+        box-sizing: border-box !important;
     }
     
-    /* Respuesta de la IA con margen */
+    /* Respuesta de la IA */
     #responseContent {
         font-size: 15px !important;
         line-height: 1.8 !important;
         padding: 20px !important;
-        margin: 0 5px !important;
+        margin: 0 0 20px 0 !important;
         border-radius: 12px !important;
+        word-wrap: break-word !important;
     }
     
-    /* Productos - TARJETAS CON MARGEN */
-    #productList {
-        padding: 10px 5px !important;
+    /* Productos con scroll */
+    .response-products {
+        margin-top: 20px !important;
+        padding-bottom: 20px !important;
     }
     
     .product-item,
@@ -1463,11 +1479,10 @@ body.light-mode .response {
         align-items: stretch !important;
         padding: 20px !important;
         gap: 15px !important;
-        margin: 15px 5px 20px 5px !important;
+        margin: 0 0 20px 0 !important;
         border-radius: 15px !important;
     }
     
-    /* Imagen más grande y centrada */
     .product-image-small,
     .response-products .product-image-small {
         width: 100% !important;
@@ -1550,7 +1565,7 @@ body.light-mode .response {
         flex-direction: column !important;
         gap: 12px !important;
         margin-top: 20px !important;
-        padding: 0 5px !important;
+        padding: 0 5px 20px 5px !important;
     }
     
     .response-actions .btn-action {
@@ -1561,6 +1576,11 @@ body.light-mode .response {
     }
     
     /* Modal de zoom */
+    .image-zoom-modal {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    
     .image-zoom-content img {
         max-width: 92% !important;
         max-height: 75vh !important;
