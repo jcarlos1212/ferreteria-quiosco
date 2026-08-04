@@ -711,6 +711,19 @@ const productosFiltrados = productos.filter(p => {
             if (productosFiltrados.length > 0) {
                 responseProducts.style.display = 'block';
                 responseProducts.innerHTML = productosFiltrados.map((prod, idx) => `
+                
+                // Scroll automático hacia los productos
+setTimeout(() => {
+    const chatContainer = document.querySelector('.chat-container');
+    if (chatContainer) {
+        chatContainer.scrollTo({
+            top: chatContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+}, 600);
+
+
                     <div class="product-item">
                         <div class="product-image-small">
                             ${prod.imagen_url ? 
@@ -755,16 +768,6 @@ const productosFiltrados = productos.filter(p => {
         if (sendBtn) sendBtn.disabled = false;
     }
 }
-// Scroll automático hacia los productos
-setTimeout(() => {
-    const chatContainer = document.querySelector('.chat-container');
-    if (chatContainer) {
-        chatContainer.scrollTo({
-            top: chatContainer.scrollHeight,
-            behavior: 'smooth'
-        });
-    }
-}, 600);
 
 /* ============================================
    REPRODUCIR AUDIO DE ELEVENLABS
