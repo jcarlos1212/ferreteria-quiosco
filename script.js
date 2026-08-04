@@ -539,10 +539,11 @@ async function confirmPurchase() {
             }
         }
        
-        } catch (error) {
-        console.error('Error guardando venta:', error);
-    } finally {
-        // Restaurar botón siempre, haya error o
+         catch (error) {
+              console.error('Error guardando venta:', error);
+         }   finally {
+             // Restaurar botón siempre, haya error o
+    }
 
 /* ============================================
    IMPRIMIR COMPROBANTE
