@@ -20,6 +20,9 @@ let currentSaleNumber = '';
 let currentSaleTotal = 0;
 let productQuantities = {};
 
+let inactivityTimer = null;
+const INACTIVITY_TIMEOUT = 120000; // 2 minutos en milisegundos
+
 /* ============================================
    VIBRACIÓN AL TOCAR
    ============================================ */
@@ -96,9 +99,11 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ============================================
    NAVEGACIÓN ENTRE PANTALLAS
    ============================================ */
+
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
+    resetInactivityTimer();
 }
 
 /* ============================================
@@ -121,6 +126,9 @@ function startSession() {
     }
     
     showScreen('screen-menu');
+    resetInactivityTimer();
+    
+    // Saludo por voz automático
     
     // Saludo por voz automático
     setTimeout(() => {
@@ -181,7 +189,33 @@ function startCountdown() {
    RESETEAR A BIENVENIDA
    ============================================ */
 function resetToWelcome() {
+
+/* ============================================
+   CONTROL DE INACTIVIDAD
+   ============================================ */
+function resetInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    
+    // No activar timer en pantalla de bienvenida ni con modal abierto
+    const modal = document.getElementById('modal');
+    const isModalOpen = modal && modal.classList.contains('active');
+    const isWelcome = document.getElementById('screen-welcome').classList.contains('active');
+    
+    if (!isWelcome && !isModalOpen) {
+        inactivityTimer = setTimeout(() => {
+            resetToWelcome();
+        }, INACTIVITY_TIMEOUT);
+    }
+}
+
+function clearInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+}
+
+   
+   
     if (countdownInterval) clearInterval(countdownInterval);
+    if (inactivityTimer) clearTimeout(inactivityTimer);
     
     clientName = '';
     cart = [];
@@ -365,7 +399,8 @@ function addToCartWithQty(productId, name, price) {
     }
     
     updateCartCount();
-    
+    resetInactivityTimer();
+           
     // Mostrar notificación toast en lugar de alert
     showToast(`${name} x${qty} agregado al carrito`);
     
@@ -515,6 +550,7 @@ function printTicket() {
    ============================================ */
 function openModal(module) {
     currentModule = module;
+    clearInactivityTimer(); // Pausar timeout mientras el chat está abierto
     
     const modal = document.getElementById('modal');
     if (modal) {
@@ -551,6 +587,7 @@ function openModal(module) {
 /* ============================================
    CERRAR MODAL
    ============================================ */
+
 function closeModal() {
     const modal = document.getElementById('modal');
     if (modal) {
@@ -560,6 +597,8 @@ function closeModal() {
     if (recognition && isListening) {
         recognition.stop();
     }
+    
+    resetInactivityTimer(); // Reanudar timeout al cerrar chat
 }
 
 /* ============================================
