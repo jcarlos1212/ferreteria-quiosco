@@ -1496,7 +1496,7 @@ body.light-mode .response {
 /* ============================================
    PRODUCTOS Y CHAT EN MÓVIL - ANCHOS
    ============================================ */
-
+   @media (max-width: 768px) {   
 /* Contenedor de chat */
 .chat-container {
     padding: 10px 5px !important;
