@@ -1388,8 +1388,8 @@ body.light-mode .response {
     
     /* Panel con margen lateral */
     .modal-panel {
-        width: 94% !important;
-        max-width: 94% !important;
+        width: 98% !important;
+        max-width: 98% !important;
         height: 96vh !important;
         max-height: 96vh !important;
         margin: 2vh auto !important;
@@ -1401,7 +1401,7 @@ body.light-mode .response {
     
     /* Header fijo arriba */
     .modal-header {
-        padding: 15px 20px !important;
+        padding: 15px 12px !important;
         flex-shrink: 0 !important;
         border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
     }
@@ -1422,9 +1422,10 @@ body.light-mode .response {
         flex: 1 !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        padding: 15px 20px 20px 20px !important;
-        -webkit-overflow-scrolling: touch !important; /* Scroll suave en iOS */
-        scroll-behavior: smooth !important;
+        padding: 15px 12px 20px 12px !important;       
+    /*    padding: 15px 12px 20px 12px !important; */
+     /*   -webkit-overflow-scrolling: touch !important; /* Scroll suave en iOS */
+     /*   scroll-behavior: smooth !important; */
     }
     
     .chat-input-wrapper {
@@ -1459,12 +1460,12 @@ body.light-mode .response {
     
     /* Respuesta de la IA */
     #responseContent {
-        font-size: 15px !important;
-        line-height: 1.8 !important;
-        padding: 20px !important;
-        margin: 0 0 20px 0 !important;
-        border-radius: 12px !important;
-        word-wrap: break-word !important;
+    font-size: 15px !important;
+    line-height: 1.8 !important;
+    padding: 18px 12px !important;
+    margin: 0 0 20px 0 !important;
+     /*   border-radius: 12px !important; */
+     /*   word-wrap: break-word !important; */
     }
     
     /* Productos con scroll */
@@ -1477,10 +1478,10 @@ body.light-mode .response {
     .response-products .product-item {
         flex-direction: column !important;
         align-items: stretch !important;
-        padding: 20px !important;
+        padding: 18px 12px !important;
         gap: 15px !important;
-        margin: 0 0 20px 0 !important;
-        border-radius: 15px !important;
+        margin: 0 0 20px 0 !important;       
+       /* border-radius: 15px !important; */
     }
     
     .product-image-small,
