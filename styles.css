@@ -887,81 +887,6 @@ body {
 }
 
 /* ============================================
-   RESPONSIVE PARA MÓVILES
-   ============================================ */
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-    
-    .kiosk-panel {
-        padding: 25px;
-    }
-    
-    .logo-3d {
-        width: 90px;
-        height: 90px;
-    }
-    
-    .kiosk-title {
-        font-size: 22px;
-    }
-    
-    .modules-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    .module-card {
-        padding: 20px;
-        min-height: 80px;
-    }
-    
-    .module-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 35px;
-    }
-    
-    .cart-actions {
-        flex-direction: column;
-    }
-    
-    .cart-actions .btn-metal {
-        width: 100%;
-    }
-    
-    /* Toast en móviles */
-    .toast {
-        top: 15px;
-        min-width: 280px;
-        padding: 15px 20px;
-    }
-    
-    .toast-icon {
-        font-size: 28px;
-    }
-    
-    .toast-message {
-        font-size: 14px;
-    }
-}
-
-@media (max-width: 480px) {
-    .kiosk-panel {
-        padding: 20px;
-    }
-    
-    .kiosk-title {
-        font-size: 20px;
-    }
-    
-    .module-label {
-        font-size: 14px;
-    }
-}
-
-/* ============================================
    SCROLLBAR PERSONALIZADO
    ============================================ */
 ::-webkit-scrollbar {
@@ -1346,62 +1271,6 @@ body.light-mode .response {
 .response-products .product-image-small img:hover {
     transform: scale(1.05);
 }
-/* ============================================
-   RESPONSIVE PARA MÓVIL
-   ============================================ */
-@media (max-width: 768px) {
-    .response-products .product-item {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 12px;
-    }
-    
-    .response-products .product-image-small {
-        width: 100%;
-        height: 120px;
-        margin-bottom: 10px;
-    }
-    
-    .response-products .product-info {
-        width: 100%;
-        text-align: center;
-    }
-    
-    .response-products .product-name {
-        font-size: 16px;
-    }
-    
-    .response-products .product-price {
-        font-size: 18px;
-    }
-    
-    .response-products .quantity-control {
-        justify-content: center;
-        margin: 10px 0;
-    }
-    
-    .response-products .btn-add {
-        width: 100%;
-        padding: 12px;
-        font-size: 16px;
-    }
-    
-    /* Mejorar modal de cotización en móvil */
-    .modal-panel {
-        width: 95%;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    
-    .chat-container {
-        padding: 10px;
-    }
-    
-    .response-content {
-        font-size: 14px;
-        line-height: 1.6;
-    }
-}
 
 /* ============================================
    MODAL DE ZOOM DE IMAGEN
@@ -1497,180 +1366,197 @@ body.light-mode .response {
     transform: scale(1.05);
     box-shadow: 0 5px 20px rgba(66, 153, 225, 0.5);
 }
+
 /* ============================================
-   RESPONSIVE - MÓDULO COTIZACIÓN EN MÓVIL
+   RESPONSIVE UNIFICADO - MÓVIL PROFESIONAL
    ============================================ */
 @media (max-width: 768px) {
-    /* Modal de cotización */
-    .modal-panel {
-        width: 95% !important;
-        max-width: 95% !important;
-        margin: 10px auto !important;
-        max-height: 90vh !important;
-        overflow-y: auto !important;
+    /* Modal ocupa casi toda la pantalla */
+    .modal {
+        width: 100% !important;
+        height: 100vh !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
     }
     
+    .modal-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+    
+    .modal-header {
+        padding: 20px 15px !important;
+    }
+    
+    .modal-title {
+        font-size: 24px !important;
+    }
+    
+    /* Panel principal del quiosco */
+    .kiosk-panel {
+        padding: 15px !important;
+    }
+    
+    .logo-3d {
+        width: 90px !important;
+        height: 90px !important;
+    }
+    
+    .kiosk-title {
+        font-size: 22px !important;
+    }
+    
+    body {
+        padding: 10px !important;
+    }
+    
+    /* Chat container */
     .chat-container {
         padding: 15px !important;
     }
     
-    /* Input de búsqueda */
     .chat-input-wrapper {
         flex-direction: column !important;
-        gap: 10px !important;
+        gap: 12px !important;
     }
     
     .chat-input {
         width: 100% !important;
+        padding: 15px !important;
         font-size: 16px !important;
     }
     
     .voice-btn {
         width: 100% !important;
-        padding: 12px !important;
+        padding: 15px !important;
     }
     
-    /* Botón enviar */
     #sendBtn {
         width: 100% !important;
-        padding: 15px !important;
-        font-size: 16px !important;
+        padding: 18px !important;
+        font-size: 18px !important;
+        font-weight: bold !important;
     }
     
-    /* Respuesta de la IA */
     #responseContent {
-        font-size: 14px !important;
-        line-height: 1.6 !important;
+        font-size: 15px !important;
+        line-height: 1.8 !important;
+        padding: 20px !important;
+    }
+    
+    /* Productos - TARJETAS AMPLIAS */
+    #productList {
         padding: 10px !important;
     }
     
-    /* Productos en cotización */
+    .product-item,
     .response-products .product-item {
         flex-direction: column !important;
         align-items: stretch !important;
-        padding: 15px !important;
-        gap: 10px !important;
+        padding: 20px !important;
+        gap: 15px !important;
+        margin-bottom: 20px !important;
     }
     
+    .product-image-small,
     .response-products .product-image-small {
         width: 100% !important;
-        max-width: 150px !important;
-        height: 150px !important;
+        max-width: 250px !important;
+        height: 200px !important;
         margin: 0 auto !important;
+        border-radius: 15px !important;
     }
     
+    .product-image-small img,
+    .response-products .product-image-small img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+        padding: 15px !important;
+    }
+    
+    .product-info,
     .response-products .product-info {
         width: 100% !important;
         text-align: center !important;
     }
     
+    .product-name,
     .response-products .product-name {
-        font-size: 16px !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
         word-wrap: break-word !important;
     }
     
+    .product-price,
     .response-products .product-price {
-        font-size: 20px !important;
+        font-size: 24px !important;
+        font-weight: bold !important;
     }
     
+    .product-stock,
     .response-products .product-stock {
-        font-size: 13px !important;
+        font-size: 14px !important;
     }
     
+    .quantity-control,
     .response-products .quantity-control {
         justify-content: center !important;
-        margin: 10px 0 !important;
+        gap: 15px !important;
+        margin: 15px 0 !important;
     }
     
+    .qty-btn,
     .response-products .qty-btn {
-        width: 40px !important;
-        height: 40px !important;
-        font-size: 20px !important;
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 24px !important;
     }
     
+    .qty-display,
     .response-products .qty-display {
-        font-size: 18px !important;
-        min-width: 35px !important;
+        font-size: 22px !important;
+        min-width: 50px !important;
     }
     
+    .btn-add,
     .response-products .btn-add {
         width: 100% !important;
-        padding: 12px !important;
-        font-size: 16px !important;
-        margin-top: 10px !important;
+        max-width: 300px !important;
+        margin: 0 auto !important;
+        padding: 18px !important;
+        font-size: 18px !important;
+        font-weight: bold !important;
     }
     
-    /* Botones de acción (Escuchar/Imprimir) */
+    /* Botones de acción */
     .response-actions {
         flex-direction: column !important;
-        gap: 10px !important;
+        gap: 12px !important;
+        margin-top: 20px !important;
     }
     
     .response-actions .btn-action {
         width: 100% !important;
-        padding: 12px !important;
-        font-size: 14px !important;
+        padding: 15px !important;
+        font-size: 16px !important;
     }
     
     /* Modal de zoom */
     .image-zoom-content img {
         max-width: 95% !important;
-        max-height: 70vh !important;
-        padding: 10px !important;
+        max-height: 75vh !important;
+        padding: 15px !important;
     }
     
     .zoomed-image-name {
-        font-size: 16px !important;
-        padding: 0 15px !important;
-    }
-}
-
-/* ============================================
-   RESPONSIVE - MÓDULO CONSULTAR PRECIOS
-   ============================================ */
-@media (max-width: 768px) {
-    /* Asegurar que el contenedor de productos se adapte */
-    #productList {
-        padding: 10px !important;
-    }
-    
-    .product-item {
-        flex-direction: column !important;
-        align-items: stretch !important;
+        font-size: 18px !important;
         padding: 15px !important;
-        gap: 10px !important;
-    }
-    
-    .product-image-small {
-        width: 100% !important;
-        max-width: 150px !important;
-        height: 150px !important;
-        margin: 0 auto !important;
-    }
-    
-    .product-info {
-        width: 100% !important;
-        text-align: center !important;
-    }
-    
-    .product-name {
-        font-size: 16px !important;
-        word-wrap: break-word !important;
-    }
-    
-    .product-price {
-        font-size: 20px !important;
-    }
-    
-    .quantity-control {
-        justify-content: center !important;
-        margin: 10px 0 !important;
-    }
-    
-    .btn-add {
-        width: 100% !important;
-        padding: 12px !important;
-        font-size: 16px !important;
-        margin-top: 10px !important;
     }
 }
