@@ -1404,9 +1404,10 @@ body.light-mode .response {
     }
     
     /* Grid de opciones - VERTICAL */
-    .screen-menu,
-    .modules-container,
-    .options-grid {
+         .screen-menu,
+         .modules-grid,
+         .modules-container,
+         .options-grid {
         display: flex !important;
         flex-direction: column !important;
         gap: 15px !important;
@@ -1427,6 +1428,62 @@ body.light-mode .response {
         gap: 15px !important;
         box-sizing: border-box !important;
     }
+
+  /* Grid de módulos - VERTICAL */
+.modules-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+    padding: 15px !important;
+    margin-bottom: 20px !important;
+}
+
+/* Tarjetas de módulo - ocupan todo el ancho */
+.module-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px 15px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 15px !important;
+    box-sizing: border-box !important;
+    min-height: 80px !important;
+}
+
+.module-icon {
+    width: 50px !important;
+    height: 50px !important;
+    flex-shrink: 0 !important;
+    font-size: 30px !important;
+}
+
+.module-label {
+    font-size: 18px !important;
+    font-weight: bold !important;
+    color: #e2e8f0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+
+/* Texto de saludo */
+.greeting {
+    font-size: 16px !important;
+    padding: 0 15px 20px 15px !important;
+    text-align: center !important;
+    line-height: 1.6 !important;
+    color: #e2e8f0 !important;
+}
+
+/* Botón SALIR */
+.btn-exit-metal {
+    width: 100% !important;
+    max-width: 280px !important;
+    margin: 20px auto 0 auto !important;
+    padding: 18px !important;
+    font-size: 18px !important;
+}
     
     /* Iconos de botones */
     .btn-metal img,
