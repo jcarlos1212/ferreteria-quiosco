@@ -1457,33 +1457,26 @@ body.light-mode .response {
         border-radius: 12px !important;
         box-sizing: border-box !important;
     }
-    
-    /* Respuesta de la IA */
-    #responseContent {
+
+   /* Respuesta de la IA */
+#responseContent {
     font-size: 15px !important;
     line-height: 1.8 !important;
     padding: 18px 12px !important;
     margin: 0 0 20px 0 !important;
-     /*   border-radius: 12px !important; */
-     /*   word-wrap: break-word !important; */
-    }
-    
-    /* Productos con scroll */
-    .response-products {
-        margin-top: 20px !important;
-        padding-bottom: 20px !important;
-    }
-    
-    .product-item,
-    .response-products .product-item {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        padding: 18px 12px !important;
-        gap: 15px !important;
-        margin: 0 0 20px 0 !important;       
-       /* border-radius: 15px !important; */
-    }
-    
+    word-wrap: break-word !important;
+}
+
+/* CONTENEDOR CON SCROLL */
+.chat-container {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 15px 12px 20px 12px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-behavior: smooth !important;
+}
+      
     .product-image-small,
     .response-products .product-image-small {
         width: 100% !important;
