@@ -1594,3 +1594,91 @@ body.light-mode .response {
         padding: 15px !important;
     }
 }
+
+/* ============================================
+   MENÚ PRINCIPAL - VERTICAL EN MÓVIL
+   ============================================ */
+@media (max-width: 768px) {
+    /* Panel del quiosco */
+    .kiosk-panel {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Logo */
+    .logo-3d {
+        width: 80px !important;
+        height: 80px !important;
+        margin: 0 auto 15px auto !important;
+    }
+    
+    /* Título */
+    .kiosk-title {
+        font-size: 20px !important;
+        padding: 0 10px !important;
+        text-align: center !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Texto de saludo */
+    .greeting-text {
+        font-size: 16px !important;
+        padding: 0 15px 20px 15px !important;
+        text-align: center !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Grid de opciones - VERTICAL */
+    .screen-menu,
+    .modules-container,
+    .options-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+        padding: 15px !important;
+    }
+    
+    /* Botones de menú */
+    .btn-metal,
+    .module-btn,
+    .menu-btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 15px !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Iconos de botones */
+    .btn-metal img,
+    .module-btn img,
+    .menu-btn img {
+        width: 50px !important;
+        height: 50px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* Texto de botones */
+    .btn-metal span,
+    .module-btn span,
+    .menu-btn span {
+        font-size: 18px !important;
+        font-weight: bold !important;
+    }
+    
+    /* Botón SALIR */
+    .btn-salir,
+    .btn-exit {
+        width: 100% !important;
+        max-width: 280px !important;
+        margin: 20px auto 0 auto !important;
+        padding: 18px !important;
+        font-size: 18px !important;
+    }
+}
