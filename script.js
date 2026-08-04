@@ -287,19 +287,20 @@ function displayProducts(products) {
         return;
     }
     
-    productList.innerHTML = products.map((prod, idx) => {
+    productList.innerHTML = products.map((prod) => {
         // Verificar que existan los campos
         const nombre = prod.nombre || prod.name || 'Producto sin nombre';
         const precio = prod.precio || prod.price || 0;
         const stock = prod.stock || 0;
         const unidad = prod.unidad || prod.unit || 'unid.';
         const imagen_url = prod.imagen_url || prod.imagen || null;
+        const prodId = prod.id || 0;
         
         return `
         <div class="product-item">
             <div class="product-image-small">
                 ${imagen_url ? 
-                 `<img src="${imagen_url}" alt="${nombre}" onclick="openImageZoom('${imagen_url}', '${nombre.replace(/'/g, "\\'")}')">` : 
+                 `<img src="${imagen_url}" alt="${nombre}" onclick="openImageZoom('${imagen_url}', '${nombre.replace(/'/g, "\\'")}', event)">` : 
                  `<div class="no-image-small"></div>`
                  }
             </div>
@@ -308,18 +309,17 @@ function displayProducts(products) {
                 <div class="product-price">S/ ${parseFloat(precio).toFixed(2)}</div>
                 <div class="product-stock">Stock: ${stock} ${stock > 0 ? 'disponible' : 'agotado'}</div>
                 <div class="quantity-control">
-                    <button class="qty-btn" onclick="vibrate(50); decreaseQty(${idx})">-</button>
-                    <span class="qty-display" id="qty-${idx}">1</span>
-                    <button class="qty-btn" onclick="vibrate(50); increaseQty(${idx})">+</button>
+                    <button class="qty-btn" onclick="vibrate(50); decreaseQty(${prodId})">-</button>
+                    <span class="qty-display" id="qty-${prodId}">1</span>
+                    <button class="qty-btn" onclick="vibrate(50); increaseQty(${prodId})">+</button>
                 </div>
             </div>
-            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${idx}, '${nombre.replace(/'/g, "\\'")}', ${precio})" ${stock === 0 ? 'disabled style="background:#999"' : ''}>
+            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prodId}, '${nombre.replace(/'/g, "\\'")}', ${precio})" ${stock === 0 ? 'disabled style="background:#999"' : ''}>
                 Agregar
             </button>
         </div>
     `}).join('');
 }
-
 
 /* ============================================
    AUMENTAR CANTIDAD
@@ -712,31 +712,31 @@ const productosFiltrados = productos.filter(p => {
 if (responseProducts) {
     if (productosFiltrados.length > 0) {
         responseProducts.style.display = 'block';
-        responseProducts.innerHTML = productosFiltrados.map((prod, idx) => `
-          
-            <div class="product-item">
-                <div class="product-image-small">
-                    ${prod.imagen_url ? 
-                        `<img src="${prod.imagen_url}" alt="${prod.nombre}" onclick="openImageZoom('${prod.imagen_url}', '${prod.nombre.replace(/'/g, "\\'")}')">` : 
-                        `<div class="no-image-small">📦</div>`
-                    }
-                </div>
-                <div class="product-info">
-                    <div class="product-name">${prod.nombre}</div>
-                    <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
-                    <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
-                    <div class="quantity-control">
-                        <button class="qty-btn" onclick="vibrate(50); decreaseQty(${idx})">-</button>
-                        <span class="qty-display" id="qty-${idx}">1</span>
-                        <button class="qty-btn" onclick="vibrate(50); increaseQty(${idx})">+</button>
+
+                       responseProducts.innerHTML = productosFiltrados.map((prod) => `
+                    <div class="product-item">
+                        <div class="product-image-small">
+                            ${prod.imagen_url ? 
+                           `<img src="${prod.imagen_url}" alt="${prod.nombre}" onclick="openImageZoom('${prod.imagen_url}', '${prod.nombre.replace(/'/g, "\\'")}', event)">` : 
+                           `<div class="no-image-small">📦</div>`
+                             }
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">${prod.nombre}</div>
+                            <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
+                            <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
+                            <div class="quantity-control">
+                                <button class="qty-btn" onclick="vibrate(50); decreaseQty(${prod.id})">-</button>
+                                <span class="qty-display" id="qty-${prod.id}">1</span>
+                                <button class="qty-btn" onclick="vibrate(50); increaseQty(${prod.id})">+</button>
+                            </div>
+                        </div>
+                        <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}', ${prod.precio})" ${prod.stock === 0 ? 'disabled' : ''}>
+                            Agregar
+                        </button>
                     </div>
-                </div>
-                <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${idx}, '${prod.nombre.replace(/'/g, "\\'")}', ${prod.precio})" ${prod.stock === 0 ? 'disabled' : ''}>
-                    Agregar
-                </button>
-            </div>
-        `).join('');
-        
+                `).join('');
+       
         // Scroll automático DESPUÉS de generar los productos
         setTimeout(() => {
             const chatContainer = document.querySelector('.chat-container');
@@ -1075,8 +1075,8 @@ async function cargarConfigDesdeQuiosco() {
 /* ============================================
    ZOOM DE IMAGEN
    ============================================ */
-function openImageZoom(imageUrl, productName) {
-    if (event) event.stopPropagation();
+function openImageZoom(imageUrl, productName, evt) {
+    if (evt) evt.stopPropagation();
     const modal = document.getElementById('imageZoomModal');
     const zoomedImage = document.getElementById('zoomedImage');
     const zoomedName = document.getElementById('zoomedImageName');
