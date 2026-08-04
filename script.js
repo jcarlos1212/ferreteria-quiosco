@@ -22,6 +22,7 @@ let productQuantities = {};
 
 let inactivityTimer = null;
 const INACTIVITY_TIMEOUT = 120000; // 2 minutos en milisegundos
+let isProcessingPurchase = false;
 
 /* ============================================
    VIBRACIÓN AL TOCAR
@@ -462,10 +463,22 @@ function showCart() {
 /* ============================================
    CONFIRMAR COMPRA
    ============================================ */
+
 async function confirmPurchase() {
     if (cart.length === 0) return;
+    if (isProcessingPurchase) return;
+    isProcessingPurchase = true;
     
-    const saleNumber = 'VTA-' + Date.now().toString().slice(-6);
+    // Deshabilitar botón y mostrar spinner
+    const confirmBtn = document.querySelector('#screen-cart .btn-metal.primary');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.dataset.originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '⏳ Procesando...';
+    }
+        const saleNumber = 'VTA-' + Date.now().toString().slice(-6);
+
+   
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const productsList = cart.map(item => `${item.qty} x ${item.name} (S/ ${(item.price * item.qty).toFixed(2)})`).join(', ');
     
@@ -525,10 +538,11 @@ async function confirmPurchase() {
                 console.log(`Stock actualizado: ${item.name} → ${nuevoStock}`);
             }
         }
-    } catch (error) {
+       
+        } catch (error) {
         console.error('Error guardando venta:', error);
-    }
-}
+    } finally {
+        // Restaurar botón siempre, haya error o
 
 /* ============================================
    IMPRIMIR COMPROBANTE
