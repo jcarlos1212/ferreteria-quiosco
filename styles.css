@@ -1367,27 +1367,26 @@ body.light-mode .response {
     box-shadow: 0 5px 20px rgba(66, 153, 225, 0.5);
 }
 
-
 /* ============================================
    MENÚ PRINCIPAL - VERTICAL EN MÓVIL
    ============================================ */
 @media (max-width: 768px) {
-    /* Panel del quiosco */
+    /* Panel del quiosco - SIN MÁRGENES */
     .kiosk-panel {
         width: 100% !important;
         max-width: 100% !important;
-        padding: 15px !important;
+        padding: 10px !important;
         box-sizing: border-box !important;
     }
     
-    /* Logo */
+    /* Logo más pequeño */
     .logo-3d {
         width: 80px !important;
         height: 80px !important;
         margin: 0 auto 15px auto !important;
     }
     
-    /* Título */
+    /* Título centrado */
     .kiosk-title {
         font-size: 20px !important;
         padding: 0 10px !important;
@@ -1395,95 +1394,29 @@ body.light-mode .response {
         word-wrap: break-word !important;
     }
     
-    /* Texto de saludo */
-    .greeting-text {
-        font-size: 16px !important;
-        padding: 0 15px 20px 15px !important;
-        text-align: center !important;
-        line-height: 1.6 !important;
-    }
-    
-    /* Grid de opciones - VERTICAL */
-         .screen-menu,
-         .modules-grid,
-         .modules-container,
-         .options-grid {
+    /* Grid de módulos - VERTICAL */
+    .modules-grid {
         display: flex !important;
         flex-direction: column !important;
         gap: 15px !important;
         padding: 15px !important;
+        margin-bottom: 20px !important;
+        width: 100% !important;
     }
     
-    /* Botones de menú */
-    .btn-metal,
-    .module-btn,
-    .menu-btn {
+    /* Tarjetas de módulo - ANCHO COMPLETO */
+    .module-card {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 20px !important;
+        padding: 20px 15px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: flex-start !important;
         gap: 15px !important;
         box-sizing: border-box !important;
+        min-height: 80px !important;
     }
-
-  /* Grid de módulos - VERTICAL */
-.modules-grid {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 15px !important;
-    padding: 15px !important;
-    margin-bottom: 20px !important;
-}
-
-/* Tarjetas de módulo - ocupan todo el ancho */
-.module-card {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 20px 15px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 15px !important;
-    box-sizing: border-box !important;
-    min-height: 80px !important;
-}
-
-.module-icon {
-    width: 50px !important;
-    height: 50px !important;
-    flex-shrink: 0 !important;
-    font-size: 30px !important;
-}
-
-.module-label {
-    font-size: 18px !important;
-    font-weight: bold !important;
-    color: #e2e8f0 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 1px !important;
-}
-
-/* Texto de saludo */
-.greeting {
-    font-size: 16px !important;
-    padding: 0 15px 20px 15px !important;
-    text-align: center !important;
-    line-height: 1.6 !important;
-    color: #e2e8f0 !important;
-}
-
-/* Botón SALIR */
-.btn-exit-metal {
-    width: 100% !important;
-    max-width: 280px !important;
-    margin: 20px auto 0 auto !important;
-    padding: 18px !important;
-    font-size: 18px !important;
-}
     
     /* Iconos de botones */
     .btn-metal img,
@@ -1492,176 +1425,6 @@ body.light-mode .response {
         width: 50px !important;
         height: 50px !important;
         flex-shrink: 0 !important;
-
-/* ============================================
-   PRODUCTOS Y CHAT EN MÓVIL - ANCHOS
-   ============================================ */
-   @media (max-width: 768px) {   
-/* Contenedor de chat */
-.chat-container {
-    padding: 10px 5px !important;
-}
-
-.chat-input-wrapper {
-    flex-direction: column !important;
-    gap: 10px !important;
-}
-
-.chat-input {
-    width: 100% !important;
-    padding: 12px !important;
-    text-align: left !important;
-}
-
-.voice-btn {
-    width: 100% !important;
-    height: 50px !important;
-}
-
-#sendBtn {
-    width: 100% !important;
-    padding: 15px !important;
-}
-
-/* Respuesta de la IA */
-.response {
-    padding: 15px 10px !important;
-    font-size: 14px !important;
-    line-height: 1.6 !important;
-}
-
-.response-actions {
-    flex-direction: column !important;
-    gap: 10px !important;
-}
-
-.btn-action {
-    width: 100% !important;
-}
-
-/* PRODUCTOS - ANCHOS COMPLETOS */
-.product-item,
-.response-products .product-item {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    padding: 15px 10px !important;
-    gap: 12px !important;
-    margin-bottom: 15px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
-
-/* Imagen grande */
-.product-image-small,
-.response-products .product-image-small {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 180px !important;
-    margin: 0 auto !important;
-}
-
-.product-image-small img,
-.response-products .product-image-small img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
-}
-
-/* Info del producto */
-.product-info,
-.response-products .product-info {
-    width: 100% !important;
-    text-align: center !important;
-    padding: 0 !important;
-}
-
-.product-name,
-.response-products .product-name {
-    font-size: 18px !important;
-    text-align: center !important;
-}
-
-.product-price,
-.response-products .product-price {
-    font-size: 22px !important;
-    text-align: center !important;
-}
-
-.product-stock,
-.response-products .product-stock {
-    font-size: 13px !important;
-    text-align: center !important;
-}
-
-/* Controles de cantidad */
-.quantity-control,
-.response-products .quantity-control {
-    justify-content: center !important;
-    gap: 15px !important;
-    margin: 10px 0 !important;
-}
-
-.qty-btn,
-.response-products .qty-btn {
-    width: 45px !important;
-    height: 45px !important;
-    font-size: 22px !important;
-}
-
-.qty-display,
-.response-products .qty-display {
-    font-size: 20px !important;
-    min-width: 40px !important;
-}
-
-/* Botón Agregar - ancho completo */
-.btn-add,
-.response-products .btn-add {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 10px 0 0 0 !important;
-    padding: 15px !important;
-    font-size: 16px !important;
-}
-
-/* Modal de cotización */
-.modal {
-    padding: 10px !important;
-}
-
-.modal-panel {
-    width: 98% !important;
-    max-width: 98% !important;
-    padding: 20px 15px !important;
-    max-height: 95vh !important;
-}
-
-.modal-header {
-    margin-bottom: 15px !important;
-    padding-bottom: 15px !important;
-}
-
-.modal-title {
-    font-size: 20px !important;
-}
-
-.btn-close {
-    width: 40px !important;
-    height: 40px !important;
-}
-
-/* Productos en cotización */
-.response-products {
-    margin-top: 15px !important;
-    padding-top: 15px !important;
-}
-
-/* Modal de zoom */
-.image-zoom-content img {
-    max-width: 95% !important;
-    max-height: 80vh !important;
-}
-       
     }
     
     /* Texto de botones */
@@ -1671,15 +1434,206 @@ body.light-mode .response {
         font-size: 18px !important;
         font-weight: bold !important;
     }
-    }
     
     /* Botón SALIR */
-    .btn-salir,
-    .btn-exit {
+    .btn-exit-metal {
         width: 100% !important;
         max-width: 280px !important;
         margin: 20px auto 0 auto !important;
         padding: 18px !important;
         font-size: 18px !important;
     }
+    
+    /* ============================================
+       MODAL DE COTIZACIÓN - ANCHO COMPLETO
+       ============================================ */
+    
+    /* Modal fondo */
+    .modal {
+        padding: 5px !important;
+    }
+    
+    /* Panel del modal - CASI 100% */
+    .modal-panel {
+        width: 98% !important;
+        max-width: 98% !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Header del modal */
+    .modal-header {
+        margin-bottom: 15px !important;
+        padding-bottom: 15px !important;
+    }
+    
+    .modal-title {
+        font-size: 20px !important;
+    }
+    
+    /* Contenedor de chat - SIN MÁRGENES */
+    .chat-container {
+        padding: 5px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* Input wrapper */
+    .chat-input-wrapper {
+        flex-direction: column !important;
+        gap: 10px !important;
+        margin-bottom: 15px !important;
+        width: 100% !important;
+    }
+    
+    /* Input de chat */
+    .chat-input {
+        width: 100% !important;
+        padding: 12px !important;
+        text-align: left !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Botón de voz */
+    .voice-btn {
+        width: 100% !important;
+        height: 50px !important;
+    }
+    
+    /* Botón enviar */
+    #sendBtn {
+        width: 100% !important;
+        padding: 15px !important;
+    }
+    
+    /* ============================================
+       RESPUESTA DE LA IA - ANCHO COMPLETO
+       ============================================ */
+    
+    /* Contenedor de respuesta */
+    .response {
+        padding: 15px 10px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Botones de acción */
+    .response-actions {
+        flex-direction: column !important;
+        gap: 10px !important;
+        margin-top: 15px !important;
+        width: 100% !important;
+    }
+    
+    .btn-action {
+        width: 100% !important;
+    }
+    
+    /* ============================================
+       PRODUCTOS - ANCHO COMPLETO
+       ============================================ */
+    
+    /* Contenedor de productos */
+    .response-products {
+        margin-top: 15px !important;
+        padding-top: 15px !important;
+        width: 100% !important;
+    }
+    
+    /* Producto individual - SIN LÍMITE DE ANCHO */
+    .product-item,
+    .response-products .product-item {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 15px 10px !important;
+        gap: 12px !important;
+        margin: 0 0 15px 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Imagen del producto - GRANDE */
+    .product-image-small,
+    .response-products .product-image-small {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 200px !important;
+        margin: 0 !important;
+        border-radius: 15px !important;
+    }
+    
+    .product-image-small img,
+    .response-products .product-image-small img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+        padding: 10px !important;
+    }
+    
+    /* Info del producto */
+    .product-info,
+    .response-products .product-info {
+        width: 100% !important;
+        text-align: center !important;
+        padding: 0 !important;
+    }
+    
+    .product-name,
+    .response-products .product-name {
+        font-size: 18px !important;
+        text-align: center !important;
+    }
+    
+    .product-price,
+    .response-products .product-price {
+        font-size: 22px !important;
+        text-align: center !important;
+    }
+    
+    .product-stock,
+    .response-products .product-stock {
+        font-size: 13px !important;
+        text-align: center !important;
+    }
+    
+    /* Controles de cantidad */
+    .quantity-control,
+    .response-products .quantity-control {
+        justify-content: center !important;
+        gap: 15px !important;
+        margin: 10px 0 !important;
+    }
+    
+    .qty-btn,
+    .response-products .qty-btn {
+        width: 45px !important;
+        height: 45px !important;
+        font-size: 22px !important;
+    }
+    
+    .qty-display,
+    .response-products .qty-display {
+        font-size: 20px !important;
+        min-width: 40px !important;
+    }
+    
+    /* Botón Agregar - ANCHO COMPLETO */
+    .btn-add,
+    .response-products .btn-add {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 10px 0 0 0 !important;
+        padding: 15px !important;
+        font-size: 16px !important;
+    }
+    
+    /* Modal de zoom */
+    .image-zoom-content img {
+        max-width: 95% !important;
+        max-height: 80vh !important;
+    }
 }
+
+
+
