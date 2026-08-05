@@ -512,6 +512,37 @@ function actualizarLogoEnPanel(logoUrl, nombreNegocio) {
     if (subtitle && nombreNegocio) subtitle.textContent = nombreNegocio;
 }
 
+
+/* ============================================
+   SUBIR IMAGEN DE PRODUCTO DESDE ARCHIVO
+   ============================================ */
+function handleProductImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert('La imagen debe ser menor a 5MB');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Url = e.target.result;
+        document.getElementById('prodImagen').value = base64Url;
+
+        const preview = document.getElementById('productPreviewImg');
+        if (preview) {
+            preview.src = base64Url;
+            preview.style.display = 'block';
+        }
+        showToast('✅ Imagen cargada');
+    };
+    reader.onerror = function() {
+        alert('❌ Error al leer la imagen');
+    };
+    reader.readAsDataURL(file);
+}
+
 function handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -641,11 +672,32 @@ function openProductModal(productId = null) {
             document.getElementById('prodUnidad').value = producto.unidad || 'unid.';
             document.getElementById('prodImagen').value = producto.imagen_url || '';
             document.getElementById('prodEstado').value = producto.estado || 'activo';
+
+            // Mostrar preview si existe imagen
+            const preview = document.getElementById('productPreviewImg');
+            if (preview && producto.imagen_url) {
+                preview.src = producto.imagen_url;
+                preview.style.display = 'block';
+            } else if (preview) {
+                preview.style.display = 'none';
+            }
         }
     } else {
         form.reset();
         document.getElementById('prodUnidad').value = 'unid.';
         document.getElementById('prodEstado').value = 'activo';
+        document.getElementById('prodImagen').value = '';
+
+        // Limpiar preview
+        const preview = document.getElementById('productPreviewImg');
+        if (preview) {
+            preview.src = '';
+            preview.style.display = 'none';
+        }
+
+        // Limpiar input file
+        const fileInput = document.getElementById('prodImageFile');
+        if (fileInput) fileInput.value = '';
     }
 
     if (modal) modal.classList.add('active');
