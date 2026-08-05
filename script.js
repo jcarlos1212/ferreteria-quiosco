@@ -681,51 +681,103 @@ function limpiarNumeroWhatsApp(numero) {
 }
 
 /* ============================================
-   WHATSAPP - COMPARTIR COMPROBANTE
-   ============================================ */
-
+WHATSAPP - COMPARTIR COMPROBANTE (MEJORADO)
+============================================ */
 function compartirWhatsAppComprobante() {
     if (!currentSaleNumber) {
-        showToast('No hay comprobante para compartir');
+        showToast('❌ No hay comprobante para compartir');
         return;
     }
-    const fecha = new Date().toLocaleDateString('es-PE');
     
-    let mensaje = '🧾 *Comprobante de Compra*\n\n';
-    mensaje += `🏪 ${negocioConfig.nombre_negocio || 'Ferretería'}\n`;
+    // Abrir modal personalizado en lugar de prompt
+    const modalWa = document.getElementById('whatsappModal');
+    const inputWa = document.getElementById('whatsappNumberInput');
+    
+    if (modalWa) {
+        modalWa.classList.add('active');
+        if (inputWa) {
+            inputWa.value = '51'; // Código de Perú por defecto
+            inputWa.focus();
+        }
+    } else {
+        // Fallback si no existe el modal
+        const numeroDestino = prompt('Ingresa tu número de WhatsApp (ej: 51999123456):');
+        if (!numeroDestino) return;
+        enviarWhatsApp(numeroDestino);
+    }
+}
+
+function enviarWhatsApp(numeroDestino) {
+    const numeroLimpio = limpiarNumeroWhatsApp(numeroDestino);
+    
+    // Validar número (mínimo 11 dígitos: 51 + 9 dígitos)
+    if (numeroLimpio.length < 11) {
+        showToast('❌ Número inválido. Debe tener 11 dígitos (51 + 9 dígitos)');
+        return;
+    }
+    
+    // Agregar código de país si no lo tiene
+    let numeroFinal = numeroLimpio;
+    if (!numeroLimpio.startsWith('51') && numeroLimpio.length === 9) {
+        numeroFinal = '51' + numeroLimpio;
+    }
+    
+    // Construir el mensaje
+    const fecha = new Date().toLocaleDateString('es-PE');
+    const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    const negocioNombre = negocioConfig.nombre_negocio || 'Ferretería';
+    
+    let mensaje = `🧾 *COMPROBANTE DE COMPRA*\n\n`;
+    mensaje += `🏪 *${negocioNombre}*\n`;
     mensaje += `📋 N°: ${currentSaleNumber}\n`;
-    mensaje += ` Fecha: ${fecha}\n`;
+    mensaje += `📅 Fecha: ${fecha} ${hora}\n`;
     mensaje += `👤 Cliente: ${clientName || 'Walk-In'}\n\n`;
-    mensaje += '*Productos:*\n';
+    mensaje += `*Productos:*\n`;
     
     cart.forEach(item => {
         mensaje += `• ${item.name} x${item.qty} = S/ ${(item.price * item.qty).toFixed(2)}\n`;
     });
     
-    mensaje += `\n*TOTAL: S/ ${currentSaleTotal.toFixed(2)}*\n`;
+    mensaje += `\n💰 *TOTAL: S/ ${currentSaleTotal.toFixed(2)}*\n\n`;
     mensaje += `Presente este mensaje en caja para completar su compra.`;
     
-    const numeroDestino = prompt('Ingresa tu número de WhatsApp (ej: 51999123456):');
-    if (!numeroDestino) return;
+    // Codificar el mensaje para URL
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    const waLink = `https://wa.me/${numeroFinal}?text=${mensajeCodificado}`;
     
-    const numeroLimpio = limpiarNumeroWhatsApp(numeroDestino);
-    if (numeroLimpio.length < 9) {
-        showToast('❌ Número inválido. Ingresa al menos 9 dígitos.');
-        return;
-    }
+    // Cerrar modal si existe
+    const modalWa = document.getElementById('whatsappModal');
+    if (modalWa) modalWa.classList.remove('active');
     
-    const waLink = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
-    const newWindow = window.open(waLink, '_blank');
-    
-    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+    // Intentar abrir WhatsApp directamente
+    try {
+        // Método 1: window.location (más confiable)
+        window.location.href = waLink;
+        
+        // Método 2: setTimeout como respaldo
+        setTimeout(() => {
+            // Si después de 2 segundos no se abrió, copiar al portapapeles
+            navigator.clipboard.writeText(mensaje).then(() => {
+                showToast('📋 Si WhatsApp no se abrió, el mensaje fue copiado. Pégalo en WhatsApp.');
+            }).catch(() => {
+                showToast('⚠️ Copia el mensaje manualmente y pégalo en WhatsApp');
+            });
+        }, 2000);
+    } catch (error) {
+        console.error('Error abriendo WhatsApp:', error);
+        // Fallback: copiar al portapapeles
         navigator.clipboard.writeText(mensaje).then(() => {
             showToast('📋 Mensaje copiado. Abre WhatsApp y pégalo.');
         }).catch(() => {
-            showToast('⚠️ Abre WhatsApp manualmente y envía el comprobante');
+            showToast('⚠️ No se pudo copiar. Abre WhatsApp manualmente.');
         });
     }
 }
 
+function cerrarModalWhatsApp() {
+    const modalWa = document.getElementById('whatsappModal');
+    if (modalWa) modalWa.classList.remove('active');
+}
 
 /* ============================================
    WHATSAPP - LLAMAR VENDEDOR
