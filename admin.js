@@ -1,22 +1,20 @@
 /* ============================================
-   VENDEDOR IA - PANEL ADMINISTRATIVO v2.0
-   SaaS Ready | CRUD Productos | WhatsApp
-   ============================================ */
-
+VENDEDOR IA - PANEL ADMINISTRATIVO v2.0
+SaaS Ready | CRUD Productos | WhatsApp
+============================================ */
 const SUPABASE_URL = 'https://tpdstpnvsyqcvsfminip.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZCntTGwCbMRC2A-pL0d8vQ_GwMiH1bt';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* ============================================
-   VARIABLES GLOBALES
-   ============================================ */
+VARIABLES GLOBALES
+============================================ */
 let currentPeriod = 'hoy';
 let currentVentaId = null;
 let allVentas = [];
 let allProducts = [];
 let currentEditProductId = null;
 let negocioConfig = {};
-
 const PLANES = {
     basico: { nombre: 'Básico', max_productos: 50, label: '50 productos' },
     profesional: { nombre: 'Profesional', max_productos: 200, label: '200 productos' },
@@ -24,8 +22,8 @@ const PLANES = {
 };
 
 /* ============================================
-   UTILIDADES
-   ============================================ */
+UTILIDADES
+============================================ */
 function escapeHtml(text) {
     if (typeof text !== 'string') return text;
     const div = document.createElement('div');
@@ -34,8 +32,8 @@ function escapeHtml(text) {
 }
 
 /* ============================================
-   INICIALIZACIÓN
-   ============================================ */
+INICIALIZACIÓN
+============================================ */
 document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('adminPassword');
     if (passwordInput) {
@@ -43,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') login();
         });
     }
-
+    
     // Cerrar modales al hacer click fuera
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', function(e) {
@@ -56,33 +54,33 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /* ============================================
-   LOGIN
-   ============================================ */
+LOGIN
+============================================ */
 async function login() {
     const passwordInput = document.getElementById('adminPassword');
     const loginError = document.getElementById('loginError');
-
+    
     if (!passwordInput) return;
-
+    
     const password = passwordInput.value.trim();
     if (!password) {
         if (loginError) loginError.textContent = 'Ingresa la contraseña';
         return;
     }
-
+    
     try {
         const { data, error } = await db
             .from('config_admin')
             .select('valor')
             .eq('clave', 'admin_password')
             .single();
-
+        
         if (error) {
             console.error('Error verificando contraseña:', error);
             if (loginError) loginError.textContent = 'Error de conexión';
             return;
         }
-
+        
         if (data && data.valor === password) {
             showScreen('admin-screen');
             loadDashboard();
@@ -100,16 +98,14 @@ async function login() {
 function logout() {
     const passwordInput = document.getElementById('adminPassword');
     if (passwordInput) passwordInput.value = '';
-
     const loginError = document.getElementById('loginError');
     if (loginError) loginError.textContent = '';
-
     showScreen('login-screen');
 }
 
 /* ============================================
-   NAVEGACIÓN
-   ============================================ */
+NAVEGACIÓN
+============================================ */
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const screen = document.getElementById(screenId);
@@ -117,8 +113,8 @@ function showScreen(screenId) {
 }
 
 /* ============================================
-   CARGAR DASHBOARD
-   ============================================ */
+CARGAR DASHBOARD
+============================================ */
 async function loadDashboard() {
     await Promise.all([
         loadVentas(),
@@ -130,8 +126,8 @@ async function loadDashboard() {
 }
 
 /* ============================================
-   FILTRAR POR PERÍODO
-   ============================================ */
+FILTRAR POR PERÍODO
+============================================ */
 function filterPeriod(period) {
     currentPeriod = period;
     document.querySelectorAll('.btn-filter').forEach(btn => {
@@ -145,7 +141,7 @@ function filterPeriod(period) {
 function getDateRange(period) {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-
+    
     switch(period) {
         case 'hoy': return { start: today, end: today };
         case 'semana':
@@ -160,34 +156,32 @@ function getDateRange(period) {
 }
 
 /* ============================================
-   CARGAR VENTAS
-   ============================================ */
+CARGAR VENTAS
+============================================ */
 async function loadVentas() {
     const ventasList = document.getElementById('ventasList');
     if (!ventasList) return;
-
+    
     ventasList.innerHTML = '<div class="empty-state">Cargando ventas...</div>';
-
+    
     try {
         const { start, end } = getDateRange(currentPeriod);
-
         const { data, error } = await db
             .from('ventas')
             .select('*')
             .gte('fecha', start)
             .lte('fecha', end)
             .order('id', { ascending: false });
-
+        
         if (error) throw error;
-
         allVentas = data || [];
-
+        
         if (allVentas.length === 0) {
             ventasList.innerHTML = '<div class="empty-state">No hay ventas en este período</div>';
             updateStats();
             return;
         }
-
+        
         ventasList.innerHTML = allVentas.map(venta => `
             <div class="venta-item">
                 <div class="venta-info">
@@ -206,7 +200,7 @@ async function loadVentas() {
                 </div>
             </div>
         `).join('');
-
+        
         updateStats();
     } catch (error) {
         console.error('Error cargando ventas:', error);
@@ -215,19 +209,19 @@ async function loadVentas() {
 }
 
 /* ============================================
-   ESTADÍSTICAS
-   ============================================ */
+ESTADÍSTICAS
+============================================ */
 function updateStats() {
     const totalVentas = allVentas.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
     const numVentas = allVentas.length;
     const pagadas = allVentas.filter(v => v.estado === 'Pagado').length;
     const pendientes = allVentas.filter(v => v.estado === 'Pendiente').length;
-
+    
     const elTotal = document.getElementById('totalVentas');
     const elNum = document.getElementById('numVentas');
     const elPag = document.getElementById('ventasPagadas');
     const elPen = document.getElementById('ventasPendientes');
-
+    
     if (elTotal) elTotal.textContent = `S/ ${totalVentas.toFixed(2)}`;
     if (elNum) elNum.textContent = numVentas;
     if (elPag) elPag.textContent = pagadas;
@@ -235,13 +229,14 @@ function updateStats() {
 }
 
 /* ============================================
-   STOCK BAJO
-   ============================================ */
+STOCK BAJO
+============================================ */
 async function loadStockBajo() {
     const alertSection = document.getElementById('alertSection');
     const alertList = document.getElementById('alertList');
+    
     if (!alertSection || !alertList) return;
-
+    
     try {
         const { data, error } = await db
             .from('productos')
@@ -249,9 +244,9 @@ async function loadStockBajo() {
             .eq('estado', 'activo')
             .lte('stock', 10)
             .order('stock', { ascending: true });
-
+        
         if (error) throw error;
-
+        
         if (data && data.length > 0) {
             alertSection.style.display = 'block';
             alertList.innerHTML = data.map(p => `
@@ -270,31 +265,30 @@ async function loadStockBajo() {
 }
 
 /* ============================================
-   TOP PRODUCTOS
-   ============================================ */
+TOP PRODUCTOS
+============================================ */
 async function loadTopProductos() {
     const topProducts = document.getElementById('topProducts');
     if (!topProducts) return;
-
+    
     topProducts.innerHTML = '<div class="empty-state">Cargando...</div>';
-
+    
     try {
         const { start, end } = getDateRange(currentPeriod);
-
         const { data, error } = await db
             .from('ventas')
             .select('productos')
             .gte('fecha', start)
             .lte('fecha', end)
             .eq('estado', 'Pagado');
-
+        
         if (error) throw error;
-
+        
         if (!data || data.length === 0) {
             topProducts.innerHTML = '<div class="empty-state">No hay productos vendidos aún</div>';
             return;
         }
-
+        
         const productCount = {};
         data.forEach(venta => {
             if (!venta.productos) return;
@@ -308,16 +302,16 @@ async function loadTopProductos() {
                 }
             });
         });
-
+        
         const sorted = Object.entries(productCount)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
-
+        
         if (sorted.length === 0) {
             topProducts.innerHTML = '<div class="empty-state">No hay productos vendidos aún</div>';
             return;
         }
-
+        
         topProducts.innerHTML = sorted.map((item, idx) => `
             <div class="top-product-item">
                 <div class="top-product-rank">${idx + 1}</div>
@@ -332,16 +326,13 @@ async function loadTopProductos() {
 }
 
 /* ============================================
-   MODAL DE CONFIRMACIÓN DE PAGO
-   ============================================ */
+MODAL DE CONFIRMACIÓN DE PAGO
+============================================ */
 function openConfirmModal(ventaId, numeroVenta, total) {
     currentVentaId = ventaId;
     const confirmMessage = document.getElementById('confirmMessage');
     if (confirmMessage) {
-        confirmMessage.innerHTML = `
-            ¿Confirmar el pago de la venta <strong>${escapeHtml(numeroVenta)}</strong><br>
-            por un total de <strong>S/ ${parseFloat(total).toFixed(2)}</strong>?
-        `;
+        confirmMessage.innerHTML = `¿Confirmar el pago de la venta <strong>${escapeHtml(numeroVenta)}</strong><br> por un total de <strong>S/ ${parseFloat(total).toFixed(2)}</strong>?`;
     }
     const modal = document.getElementById('confirmModal');
     if (modal) modal.classList.add('active');
@@ -355,49 +346,48 @@ function closeConfirmModal() {
 
 async function confirmarPago() {
     if (!currentVentaId) return;
-
+    
     try {
         const { error: updateError } = await db
             .from('ventas')
             .update({ estado: 'Pagado' })
             .eq('id', currentVentaId);
-
+        
         if (updateError) throw updateError;
-
+        
         await db.from('ventas_estado_log').insert([{
             venta_id: currentVentaId,
             estado_anterior: 'Pendiente',
             estado_nuevo: 'Pagado',
             usuario: 'Admin'
         }]);
-
+        
         closeConfirmModal();
         await loadVentas();
         showToast('✅ Pago confirmado exitosamente');
     } catch (error) {
         console.error('Error confirmando pago:', error);
-        alert('❌ Error al confirmar el pago');
+        alert(' Error al confirmar el pago');
     }
 }
 
 /* ============================================
-   CONFIGURACIÓN DEL NEGOCIO
-   ============================================ */
+CONFIGURACIÓN DEL NEGOCIO
+============================================ */
 async function cargarConfigNegocio() {
     try {
         const { data, error } = await db
             .from('config_negocio')
             .select('*')
             .single();
-
+        
         if (error) {
             console.error('Error cargando config:', error);
             return;
         }
-
+        
         if (data) {
             negocioConfig = data;
-
             const elNombre = document.getElementById('configNombre');
             const elLogo = document.getElementById('configLogo');
             const elWhatsapp = document.getElementById('configWhatsapp');
@@ -405,14 +395,14 @@ async function cargarConfigNegocio() {
             const elDireccion = document.getElementById('configDireccion');
             const elPlan = document.getElementById('configPlan');
             const elPreview = document.getElementById('logoPreviewImg');
-
+            
             if (elNombre) elNombre.value = data.nombre_negocio || '';
             if (elLogo) elLogo.value = data.logo_url || '';
             if (elWhatsapp) elWhatsapp.value = data.whatsapp || '';
             if (elTelefono) elTelefono.value = data.telefono || '';
             if (elDireccion) elDireccion.value = data.direccion || '';
             if (elPlan) elPlan.value = data.plan || 'basico';
-
+            
             if (elPreview) {
                 if (data.logo_url) {
                     elPreview.src = data.logo_url;
@@ -421,11 +411,8 @@ async function cargarConfigNegocio() {
                     elPreview.style.display = 'none';
                 }
             }
-
-            // Actualizar logo en login y header
+            
             actualizarLogoEnPanel(data.logo_url, data.nombre_negocio);
-
-            // Mostrar info del plan
             mostrarInfoPlan(data.plan || 'basico');
         }
     } catch (error) {
@@ -437,11 +424,7 @@ function mostrarInfoPlan(planKey) {
     const planInfo = document.getElementById('planInfo');
     const plan = PLANES[planKey] || PLANES.basico;
     if (planInfo) {
-        planInfo.innerHTML = `
-            <div class="plan-badge plan-${planKey}">
-                <strong>Plan ${plan.nombre}</strong> — Hasta ${plan.label}
-            </div>
-        `;
+        planInfo.innerHTML = `<div class="plan-badge plan-${planKey}"> <strong>Plan ${plan.nombre}</strong> — Hasta ${plan.label} </div>`;
     }
 }
 
@@ -452,12 +435,12 @@ async function guardarConfig() {
     const telefono = document.getElementById('configTelefono').value.trim();
     const direccion = document.getElementById('configDireccion').value.trim();
     const plan = document.getElementById('configPlan').value;
-
+    
     if (!nombre) {
         alert('Ingresa el nombre del negocio');
         return;
     }
-
+    
     try {
         const { error } = await db
             .from('config_negocio')
@@ -471,9 +454,9 @@ async function guardarConfig() {
                 updated_at: new Date().toISOString()
             })
             .eq('id', 1);
-
+        
         if (error) throw error;
-
+        
         showToast('✅ Configuración guardada correctamente');
         actualizarLogoEnApp(logoUrl, nombre);
         mostrarInfoPlan(plan);
@@ -492,7 +475,7 @@ function actualizarLogoEnApp(logoUrl, nombreNegocio) {
         }
         if (nombreNegocio) img.alt = nombreNegocio;
     });
-
+    
     const titulos = document.querySelectorAll('.kiosk-title');
     titulos.forEach(titulo => {
         if (nombreNegocio && titulo.textContent.includes('BIENVENIDO')) {
@@ -507,29 +490,27 @@ function actualizarLogoEnPanel(logoUrl, nombreNegocio) {
         if (logoUrl) img.src = logoUrl;
         if (nombreNegocio) img.alt = nombreNegocio;
     });
-
+    
     const subtitle = document.querySelector('.subtitle');
     if (subtitle && nombreNegocio) subtitle.textContent = nombreNegocio;
 }
 
-
 /* ============================================
-   SUBIR IMAGEN DE PRODUCTO DESDE ARCHIVO
-   ============================================ */
+SUBIR IMAGEN DE PRODUCTO DESDE ARCHIVO
+============================================ */
 function handleProductImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-
+    
     if (file.size > 5 * 1024 * 1024) {
         alert('La imagen debe ser menor a 5MB');
         return;
     }
-
+    
     const reader = new FileReader();
     reader.onload = function(e) {
         const base64Url = e.target.result;
         document.getElementById('prodImagen').value = base64Url;
-
         const preview = document.getElementById('productPreviewImg');
         if (preview) {
             preview.src = base64Url;
@@ -546,12 +527,12 @@ function handleProductImageUpload(event) {
 function handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-
+    
     if (file.size > 5 * 1024 * 1024) {
         alert('El logo debe ser menor a 5MB');
         return;
     }
-
+    
     const reader = new FileReader();
     reader.onload = function(e) {
         const base64Url = e.target.result;
@@ -567,17 +548,16 @@ function handleLogoUpload(event) {
 }
 
 /* ============================================
-   CRUD DE PRODUCTOS
-   ============================================ */
+CRUD DE PRODUCTOS
+============================================ */
 async function cargarProductosAdmin() {
     try {
         const { data, error } = await db
             .from('productos')
             .select('*')
             .order('nombre', { ascending: true });
-
+        
         if (error) throw error;
-
         allProducts = data || [];
         renderProductosAdmin(allProducts);
         actualizarContadorProductos();
@@ -598,12 +578,12 @@ function actualizarContadorProductos() {
 function renderProductosAdmin(products) {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
-
+    
     if (products.length === 0) {
         grid.innerHTML = '<div class="empty-state">No se encontraron productos</div>';
         return;
     }
-
+    
     grid.innerHTML = products.map(prod => `
         <div class="product-card ${prod.estado === 'inactivo' ? 'product-inactive' : ''}">
             <div class="product-card-header">
@@ -615,14 +595,12 @@ function renderProductosAdmin(products) {
                 <span class="product-card-price">S/ ${parseFloat(prod.precio).toFixed(2)}</span>
             </div>
             <div class="product-card-stock">Stock: ${prod.stock} ${escapeHtml(prod.unidad || 'unid.')}</div>
-
             <div class="product-image-container">
                 ${prod.imagen_url ?
                     `<img src="${escapeHtml(prod.imagen_url)}" alt="${escapeHtml(prod.nombre)}">` :
                     `<div class="no-image">Sin imagen<br>📦</div>`
                 }
             </div>
-
             <div class="product-card-actions">
                 <button class="btn-action-card edit" onclick="openProductModal(${prod.id})">✏️ Editar</button>
                 ${prod.estado === 'activo' ?
@@ -637,34 +615,35 @@ function renderProductosAdmin(products) {
 function filtrarProductosAdmin() {
     const search = document.getElementById('searchProductAdmin').value.toLowerCase();
     const filtroEstado = document.getElementById('filterEstado').value;
-
+    
     let filtered = allProducts;
-
+    
     if (search) {
         filtered = filtered.filter(p => p.nombre.toLowerCase().includes(search));
     }
-
+    
     if (filtroEstado !== 'todos') {
         filtered = filtered.filter(p => p.estado === filtroEstado);
     }
-
+    
     renderProductosAdmin(filtered);
 }
 
 /* ============================================
-   MODAL PRODUCTO (CREAR / EDITAR)
-   ============================================ */
+MODAL PRODUCTO (CREAR / EDITAR)
+============================================ */
 function openProductModal(productId = null) {
     currentEditProductId = productId;
     const modal = document.getElementById('productModal');
     const title = document.getElementById('productModalTitle');
     const form = document.getElementById('productForm');
-
+    
     if (title) title.textContent = productId ? '✏️ Editar Producto' : '➕ Nuevo Producto';
-
+    
     if (productId) {
         const producto = allProducts.find(p => p.id === productId);
         if (producto) {
+            document.getElementById('prodSku').value = producto.sku || '';
             document.getElementById('prodNombre').value = producto.nombre;
             document.getElementById('prodCategoria').value = producto.categoria || '';
             document.getElementById('prodPrecio').value = producto.precio;
@@ -672,8 +651,7 @@ function openProductModal(productId = null) {
             document.getElementById('prodUnidad').value = producto.unidad || 'unid.';
             document.getElementById('prodImagen').value = producto.imagen_url || '';
             document.getElementById('prodEstado').value = producto.estado || 'activo';
-
-            // Mostrar preview si existe imagen
+            
             const preview = document.getElementById('productPreviewImg');
             if (preview && producto.imagen_url) {
                 preview.src = producto.imagen_url;
@@ -684,22 +662,21 @@ function openProductModal(productId = null) {
         }
     } else {
         form.reset();
+        document.getElementById('prodSku').value = '';
         document.getElementById('prodUnidad').value = 'unid.';
         document.getElementById('prodEstado').value = 'activo';
         document.getElementById('prodImagen').value = '';
-
-        // Limpiar preview
+        
         const preview = document.getElementById('productPreviewImg');
         if (preview) {
             preview.src = '';
             preview.style.display = 'none';
         }
-
-        // Limpiar input file
+        
         const fileInput = document.getElementById('prodImageFile');
         if (fileInput) fileInput.value = '';
     }
-
+    
     if (modal) modal.classList.add('active');
 }
 
@@ -710,6 +687,7 @@ function closeProductModal() {
 }
 
 async function guardarProducto() {
+    const sku = document.getElementById('prodSku').value.trim();
     const nombre = document.getElementById('prodNombre').value.trim();
     const categoria = document.getElementById('prodCategoria').value.trim();
     const precio = parseFloat(document.getElementById('prodPrecio').value);
@@ -717,25 +695,30 @@ async function guardarProducto() {
     const unidad = document.getElementById('prodUnidad').value.trim();
     const imagen_url = document.getElementById('prodImagen').value.trim();
     const estado = document.getElementById('prodEstado').value;
-
-    if (!nombre || isNaN(precio) || isNaN(stock)) {
-        alert('Completa todos los campos obligatorios correctamente');
+    
+    if (!sku || !nombre || isNaN(precio) || isNaN(stock)) {
+        alert('Completa todos los campos obligatorios correctamente (SKU, nombre, precio, stock)');
         return;
     }
-
+    
     try {
         if (currentEditProductId) {
             // EDITAR
             const { error } = await db
                 .from('productos')
                 .update({
-                    nombre, categoria, precio, stock, unidad,
+                    sku,
+                    nombre,
+                    categoria,
+                    precio,
+                    stock,
+                    unidad,
                     imagen_url: imagen_url || null,
                     estado,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', currentEditProductId);
-
+            
             if (error) throw error;
             showToast('✅ Producto actualizado');
         } else {
@@ -743,25 +726,30 @@ async function guardarProducto() {
             const plan = negocioConfig.plan || 'basico';
             const maxProd = PLANES[plan].max_productos;
             const activos = allProducts.filter(p => p.estado === 'activo').length;
-
+            
             if (activos >= maxProd) {
                 alert(`❌ Has alcanzado el límite de ${maxProd} productos del plan ${PLANES[plan].nombre}. Upgradea tu plan.`);
                 return;
             }
-
+            
             const { error } = await db
                 .from('productos')
                 .insert([{
-                    nombre, categoria, precio, stock, unidad,
+                    sku,
+                    nombre,
+                    categoria,
+                    precio,
+                    stock,
+                    unidad,
                     imagen_url: imagen_url || null,
                     estado,
                     created_at: new Date().toISOString()
                 }]);
-
+            
             if (error) throw error;
             showToast('✅ Producto creado exitosamente');
         }
-
+        
         closeProductModal();
         await cargarProductosAdmin();
     } catch (error) {
@@ -772,13 +760,13 @@ async function guardarProducto() {
 
 async function eliminarProducto(productId) {
     if (!confirm('¿Desactivar este producto? Ya no aparecerá en el quiosco.')) return;
-
+    
     try {
         const { error } = await db
             .from('productos')
             .update({ estado: 'inactivo' })
             .eq('id', productId);
-
+        
         if (error) throw error;
         showToast('✅ Producto desactivado');
         await cargarProductosAdmin();
@@ -794,7 +782,7 @@ async function restaurarProducto(productId) {
             .from('productos')
             .update({ estado: 'activo' })
             .eq('id', productId);
-
+        
         if (error) throw error;
         showToast('✅ Producto activado');
         await cargarProductosAdmin();
@@ -805,42 +793,42 @@ async function restaurarProducto(productId) {
 }
 
 /* ============================================
-   SUBIR IMAGEN DE PRODUCTO (STORAGE)
-   ============================================ */
+SUBIR IMAGEN DE PRODUCTO (STORAGE)
+============================================ */
 async function subirImagenProducto(event, productoId) {
     const file = event.target.files[0];
     if (!file) return;
-
+    
     if (file.size > 5 * 1024 * 1024) {
         alert('La imagen debe ser menor a 5MB');
         return;
     }
-
+    
     const producto = allProducts.find(p => p.id === productoId);
     if (!producto) return;
-
+    
     const fileName = `producto_${productoId}_${Date.now()}.${file.name.split('.').pop()}`;
-
+    
     try {
         const { data, error } = await db.storage
             .from('productos')
             .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
+        
         if (error) throw error;
-
+        
         const { data: urlData } = db.storage
             .from('productos')
             .getPublicUrl(fileName);
-
+        
         const imageUrl = urlData.publicUrl;
-
+        
         const { error: updateError } = await db
             .from('productos')
             .update({ imagen_url: imageUrl })
             .eq('id', productoId);
-
+        
         if (updateError) throw updateError;
-
+        
         showToast('✅ Imagen subida correctamente');
         await cargarProductosAdmin();
     } catch (error) {
@@ -850,16 +838,17 @@ async function subirImagenProducto(event, productoId) {
 }
 
 /* ============================================
-   TOAST
-   ============================================ */
+TOAST
+============================================ */
 function showToast(message) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
+    
     if (!toast || !toastMessage) return;
-
+    
     toastMessage.textContent = message;
     toast.classList.add('show');
-
+    
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
