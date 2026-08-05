@@ -244,5 +244,27 @@
     </div>
 
     <script src="script.js"></script>
+
+    <!-- Modal de WhatsApp -->
+<div id="whatsappModal" class="modal">
+    <div class="modal-panel small">
+        <div class="modal-header">
+            <h3 class="modal-title">📱 Enviar Comprobante por WhatsApp</h3>
+            <button class="btn-close" onclick="cerrarModalWhatsApp()">✕</button>
+        </div>
+        <div class="form-group">
+            <label>Número de WhatsApp *</label>
+            <input type="tel" id="whatsappNumberInput" placeholder="51999123456" maxlength="15">
+            <small>Ingresa el número con código de país (51 para Perú). Ej: 51999123456</small>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-metal secondary" onclick="cerrarModalWhatsApp()">Cancelar</button>
+            <button class="btn-metal success" onclick="enviarWhatsApp(document.getElementById('whatsappNumberInput').value)">
+                📤 Enviar
+            </button>
+        </div>
+    </div>
+</div>
+    
 </body>
 </html>
