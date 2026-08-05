@@ -21,8 +21,18 @@ let currentSaleTotal = 0;
 let productQuantities = {};
 
 let inactivityTimer = null;
-const INACTIVITY_TIMEOUT = 120000; // 2 minutos en milisegundos
+const INACTIVITY_TIMEOUT = 120000; // 2 minutos
 let isProcessingPurchase = false;
+
+/* ============================================
+   UTILIDADES - SANITIZACIÓN ANTI-XSS
+   ============================================ */
+function escapeHtml(text) {
+    if (typeof text !== 'string') return text;
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 /* ============================================
    VIBRACIÓN AL TOCAR
@@ -42,26 +52,46 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.lang = 'es-ES';
     recognition.continuous = false;
     recognition.interimResults = false;
-    
+
     recognition.onresult = function(event) {
-        document.getElementById('userInput').value = event.results[0][0].transcript;
+        const userInput = document.getElementById('userInput');
+        if (userInput) userInput.value = event.results[0][0].transcript;
         stopListening();
     };
-    
+
     recognition.onerror = function(event) {
         console.error('Error en reconocimiento de voz:', event.error);
         stopListening();
         alert('Error al escuchar. Intenta de nuevo.');
     };
-    
+
     recognition.onend = function() {
         stopListening();
     };
 } else {
     const voiceBtn = document.getElementById('voiceBtn');
-    if (voiceBtn) {
-        voiceBtn.style.display = 'none';
+    if (voiceBtn) voiceBtn.style.display = 'none';
+}
+
+/* ============================================
+   CONTROL DE INACTIVIDAD
+   ============================================ */
+function resetInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+
+    const modal = document.getElementById('modal');
+    const isModalOpen = modal && modal.classList.contains('active');
+    const isWelcome = document.getElementById('screen-welcome')?.classList.contains('active');
+
+    if (!isWelcome && !isModalOpen) {
+        inactivityTimer = setTimeout(() => {
+            resetToWelcome();
+        }, INACTIVITY_TIMEOUT);
     }
+}
+
+function clearInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
 }
 
 /* ============================================
@@ -74,36 +104,47 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') startSession();
         });
     }
-    
+
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') searchProducts();
         });
     }
-    
+
     const userInput = document.getElementById('userInput');
     if (userInput) {
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') sendQuestion();
         });
     }
-    
+
     const modal = document.getElementById('modal');
     if (modal) {
         modal.addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
     }
+
+    // Cargar configuración del negocio al iniciar
+    cargarConfigDesdeQuiosco();
+
+    // Cargar tema guardado
+    const savedTheme = localStorage.getItem('theme');
+    const themeToggle = document.getElementById('themeToggle');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        if (themeToggle) themeToggle.textContent = '🌙';
+    }
 });
 
 /* ============================================
    NAVEGACIÓN ENTRE PANTALLAS
    ============================================ */
-
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
+    const screen = document.getElementById(screenId);
+    if (screen) screen.classList.add('active');
     resetInactivityTimer();
 }
 
@@ -113,24 +154,22 @@ function showScreen(screenId) {
 function startSession() {
     const nameInput = document.getElementById('clientName');
     if (!nameInput) return;
-    
+
     const nameValue = nameInput.value.trim();
     if (!nameValue) {
         alert('Por favor ingresa tu nombre');
         return;
     }
-    
+
     clientName = nameValue;
     const greetingText = document.getElementById('greetingText');
     if (greetingText) {
-        greetingText.innerHTML = `¡Hola <strong>${clientName}</strong>! Soy tu asistente virtual.<br>Por favor elige una de las opciones y te ayudaré.`;
+        greetingText.innerHTML = `¡Hola <strong>${escapeHtml(clientName)}</strong>! Soy tu asistente virtual.<br>Por favor elige una de las opciones y te ayudaré.`;
     }
-    
+
     showScreen('screen-menu');
     resetInactivityTimer();
-    
-    // Saludo por voz automático
-    
+
     // Saludo por voz automático
     setTimeout(() => {
         const saludo = `¡Hola ${clientName}! Soy tu asistente virtual. Por favor elige una de las opciones y te ayudaré.`;
@@ -138,13 +177,11 @@ function startSession() {
         utterance.lang = 'es-ES';
         utterance.rate = 0.9;
         utterance.pitch = 1;
-        
+
         const voces = window.speechSynthesis.getVoices();
         const vozEspanol = voces.find(v => v.lang.includes('es'));
-        if (vozEspanol) {
-            utterance.voice = vozEspanol;
-        }
-        
+        if (vozEspanol) utterance.voice = vozEspanol;
+
         window.speechSynthesis.speak(utterance);
     }, 500);
 }
@@ -154,10 +191,7 @@ function startSession() {
    ============================================ */
 function endSession() {
     const farewellName = document.getElementById('farewellName');
-    if (farewellName) {
-        farewellName.textContent = clientName;
-    }
-    
+    if (farewellName) farewellName.textContent = clientName;
     showScreen('screen-farewell');
     startCountdown();
 }
@@ -168,17 +202,13 @@ function endSession() {
 function startCountdown() {
     let count = 5;
     const countdownElement = document.getElementById('countdown');
-    if (countdownElement) {
-        countdownElement.textContent = count;
-    }
-    
+    if (countdownElement) countdownElement.textContent = count;
+
     if (countdownInterval) clearInterval(countdownInterval);
-    
+
     countdownInterval = setInterval(() => {
         count--;
-        if (countdownElement) {
-            countdownElement.textContent = count;
-        }
+        if (countdownElement) countdownElement.textContent = count;
         if (count <= 0) {
             clearInterval(countdownInterval);
             resetToWelcome();
@@ -190,56 +220,25 @@ function startCountdown() {
    RESETEAR A BIENVENIDA
    ============================================ */
 function resetToWelcome() {
-
-/* ============================================
-   CONTROL DE INACTIVIDAD
-   ============================================ */
-function resetInactivityTimer() {
-    if (inactivityTimer) clearTimeout(inactivityTimer);
-    
-    // No activar timer en pantalla de bienvenida ni con modal abierto
-    const modal = document.getElementById('modal');
-    const isModalOpen = modal && modal.classList.contains('active');
-    const isWelcome = document.getElementById('screen-welcome').classList.contains('active');
-    
-    if (!isWelcome && !isModalOpen) {
-        inactivityTimer = setTimeout(() => {
-            resetToWelcome();
-        }, INACTIVITY_TIMEOUT);
-    }
-}
-
-function clearInactivityTimer() {
-    if (inactivityTimer) clearTimeout(inactivityTimer);
-}
-
-   
-   
     if (countdownInterval) clearInterval(countdownInterval);
     if (inactivityTimer) clearTimeout(inactivityTimer);
-    
+
     clientName = '';
     cart = [];
     currentSaleNumber = '';
     currentSaleTotal = 0;
     productQuantities = {};
-    
+
     const clientNameInput = document.getElementById('clientName');
-    if (clientNameInput) {
-        clientNameInput.value = '';
-    }
-    
+    if (clientNameInput) clientNameInput.value = '';
+
     const cartCount = document.getElementById('cartCount');
-    if (cartCount) {
-        cartCount.textContent = '0';
-    }
-    
+    if (cartCount) cartCount.textContent = '0';
+
     showScreen('screen-welcome');
-    
+
     setTimeout(() => {
-        if (clientNameInput) {
-            clientNameInput.focus();
-        }
+        if (clientNameInput) clientNameInput.focus();
     }, 100);
 }
 
@@ -248,17 +247,15 @@ function clearInactivityTimer() {
    ============================================ */
 function openBuyScreen() {
     showScreen('screen-buy');
-    
+
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.value = '';
-    }
-    
+    if (searchInput) searchInput.value = '';
+
     const productList = document.getElementById('productList');
     if (productList) {
         productList.innerHTML = '<div class="empty-state">Busca productos para agregar a tu compra</div>';
     }
-    
+
     productQuantities = {};
 }
 
@@ -268,25 +265,25 @@ function openBuyScreen() {
 async function searchProducts() {
     const searchInput = document.getElementById('searchInput');
     if (!searchInput) return;
-    
+
     const query = searchInput.value.trim();
     if (!query) return;
-    
+
     const productList = document.getElementById('productList');
     if (!productList) return;
-    
-    productList.innerHTML = '<div class="loading"> Buscando productos...</div>';
+
+    productList.innerHTML = '<div class="loading">🔍 Buscando productos...</div>';
     productQuantities = {};
-    
+
     try {
         const { data, error } = await db
             .from('productos')
             .select('*')
             .ilike('nombre', `%${query}%`)
             .eq('estado', 'activo');
-        
+
         if (error) throw error;
-        
+
         if (data && data.length > 0) {
             const products = data.map(p => ({
                 id: p.id,
@@ -306,37 +303,33 @@ async function searchProducts() {
         productList.innerHTML = '<div class="empty-state">Error de conexión. Intenta de nuevo.</div>';
     }
 }
+
 /* ============================================
    MOSTRAR PRODUCTOS
    ============================================ */
 function displayProducts(products) {
     const productList = document.getElementById('productList');
     if (!productList) return;
-   console.log('Productos en displayProducts:', products);
-   if (products && products.length > 0) {
-      console.log('Primer producto:', products[0]);
-   }
-    
+
     if (!products || products.length === 0) {
         productList.innerHTML = '<div class="empty-state">No se encontraron productos</div>';
         return;
     }
-    
+
     productList.innerHTML = products.map((prod) => {
-        // Verificar que existan los campos
-        const nombre = prod.nombre || prod.name || 'Producto sin nombre';
+        const nombre = escapeHtml(prod.nombre || prod.name || 'Producto sin nombre');
         const precio = prod.precio || prod.price || 0;
         const stock = prod.stock || 0;
-        const unidad = prod.unidad || prod.unit || 'unid.';
+        const unidad = escapeHtml(prod.unidad || prod.unit || 'unid.');
         const imagen_url = prod.imagen_url || prod.imagen || null;
         const prodId = prod.id || 0;
-        
+
         return `
         <div class="product-item">
             <div class="product-image-small">
-                ${imagen_url ? 
-                 `<img src="${imagen_url}" alt="${nombre}" onclick="openImageZoom('${imagen_url}', '${nombre.replace(/'/g, "\\'")}', event)">` : 
-                 `<div class="no-image-small"></div>`
+                ${imagen_url ?
+                 `<img src="${escapeHtml(imagen_url)}" alt="${nombre}" onclick="openImageZoom('${escapeHtml(imagen_url)}', '${nombre.replace(/'/g, "\\'")}', event)">` :
+                 `<div class="no-image-small">📦</div>`
                  }
             </div>
             <div class="product-info">
@@ -349,7 +342,7 @@ function displayProducts(products) {
                     <button class="qty-btn" onclick="vibrate(50); increaseQty(${prodId})">+</button>
                 </div>
             </div>
-            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prodId}, '${nombre.replace(/'/g, "\\'")}', ${precio})" ${stock === 0 ? 'disabled style="background:#999"' : ''}>
+            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prodId}, '${nombre.replace(/'/g, "\\'")}', ${precio}, ${stock})" ${stock === 0 ? 'disabled style="background:#999"' : ''}>
                 Agregar
             </button>
         </div>
@@ -362,54 +355,53 @@ function displayProducts(products) {
 function increaseQty(productId) {
     if (!productQuantities[productId]) productQuantities[productId] = 1;
     productQuantities[productId]++;
-    
+
     const qtyDisplay = document.getElementById(`qty-${productId}`);
-    if (qtyDisplay) {
-        qtyDisplay.textContent = productQuantities[productId];
-    }
+    if (qtyDisplay) qtyDisplay.textContent = productQuantities[productId];
 }
 
 /* ============================================
    DISMINUIR CANTIDAD
    ============================================ */
-
 function decreaseQty(productId) {
     if (!productQuantities[productId]) productQuantities[productId] = 1;
-    
+
     if (productQuantities[productId] > 1) {
         productQuantities[productId]--;
-        
         const qtyDisplay = document.getElementById(`qty-${productId}`);
-        if (qtyDisplay) {
-            qtyDisplay.textContent = productQuantities[productId];
-        }
+        if (qtyDisplay) qtyDisplay.textContent = productQuantities[productId];
     }
 }
 
 /* ============================================
    AGREGAR AL CARRITO CON CANTIDAD
    ============================================ */
-function addToCartWithQty(productId, name, price) {
+function addToCartWithQty(productId, name, price, stock) {
     const qty = productQuantities[productId] || 1;
+
+    // Validar stock disponible
     const existing = cart.find(item => item.name === name);
-    
+    const qtyEnCarrito = existing ? existing.qty : 0;
+
+    if (stock !== undefined && qty + qtyEnCarrito > stock) {
+        showToast(`❌ Stock insuficiente. Solo hay ${stock} disponible(s).`);
+        return;
+    }
+
     if (existing) {
         existing.qty += qty;
     } else {
         cart.push({ name, price, qty: qty });
     }
-    
+
     updateCartCount();
     resetInactivityTimer();
-           
-    // Mostrar notificación toast en lugar de alert
-    showToast(`${name} x${qty} agregado al carrito`);
-    
+
+    showToast(`${escapeHtml(name)} x${qty} agregado al carrito`);
+
     productQuantities[productId] = 1;
     const qtyDisplay = document.getElementById(`qty-${productId}`);
-    if (qtyDisplay) {
-        qtyDisplay.textContent = '1';
-    }
+    if (qtyDisplay) qtyDisplay.textContent = '1';
 }
 
 /* ============================================
@@ -418,9 +410,7 @@ function addToCartWithQty(productId, name, price) {
 function updateCartCount() {
     const count = cart.reduce((sum, item) => sum + item.qty, 0);
     const cartCount = document.getElementById('cartCount');
-    if (cartCount) {
-        cartCount.textContent = count;
-    }
+    if (cartCount) cartCount.textContent = count;
 }
 
 /* ============================================
@@ -431,79 +421,75 @@ function showCart() {
         alert('Tu carrito está vacío');
         return;
     }
-    
+
     const cartSummary = document.getElementById('cartSummary');
     if (!cartSummary) return;
-    
+
     let total = 0;
-    cartSummary.innerHTML = cart.map((item, idx) => {
+    cartSummary.innerHTML = cart.map((item) => {
         const itemTotal = item.price * item.qty;
         total += itemTotal;
         return `
             <div class="cart-item">
                 <div class="cart-item-info">
-                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-name">${escapeHtml(item.name)}</div>
                     <div class="cart-item-qty">Cantidad: ${item.qty}</div>
                 </div>
                 <div class="cart-item-price">S/ ${itemTotal.toFixed(2)}</div>
             </div>
         `;
     }).join('');
-    
+
     cartSummary.innerHTML += `
         <div class="cart-total">
             <span>TOTAL:</span>
             <span>S/ ${total.toFixed(2)}</span>
         </div>
     `;
-    
+
     showScreen('screen-cart');
 }
 
 /* ============================================
    CONFIRMAR COMPRA
    ============================================ */
-
 async function confirmPurchase() {
     if (cart.length === 0) return;
     if (isProcessingPurchase) return;
     isProcessingPurchase = true;
-    
-    // Deshabilitar botón y mostrar spinner
+
     const confirmBtn = document.querySelector('#screen-cart .btn-metal.primary');
+    const originalText = confirmBtn ? confirmBtn.innerHTML : 'Confirmar compra';
+
     if (confirmBtn) {
         confirmBtn.disabled = true;
-        confirmBtn.dataset.originalText = confirmBtn.innerHTML;
         confirmBtn.innerHTML = '⏳ Procesando...';
     }
-        const saleNumber = 'VTA-' + Date.now().toString().slice(-6);
 
-   
+    const saleNumber = 'VTA-' + Date.now().toString().slice(-6);
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const productsList = cart.map(item => `${item.qty} x ${item.name} (S/ ${(item.price * item.qty).toFixed(2)})`).join(', ');
-    
+
     currentSaleNumber = saleNumber;
     currentSaleTotal = total;
-    
+
     const saleNumberDisplay = document.getElementById('saleNumber');
-    if (saleNumberDisplay) {
-        saleNumberDisplay.textContent = saleNumber;
-    }
-    
+    if (saleNumberDisplay) saleNumberDisplay.textContent = saleNumber;
+
     const confirmationDetails = document.getElementById('confirmationDetails');
     if (confirmationDetails) {
         confirmationDetails.innerHTML = `
-            <strong>Cliente:</strong> ${clientName}<br>
-            <strong>Productos:</strong> ${productsList}<br>
+            <strong>Cliente:</strong> ${escapeHtml(clientName)}<br>
+            <strong>Productos:</strong> ${escapeHtml(productsList)}<br>
             <strong>Total a pagar:</strong> S/ ${total.toFixed(2)}
         `;
     }
-    
+
     showScreen('screen-confirmation');
-    
+
     try {
         // Guardar venta en Supabase
-        const { data: ventaData, error: ventaError } = await db
+        const { error: ventaError } = await db
             .from('ventas')
             .insert([{
                 numero_venta: saleNumber,
@@ -514,9 +500,9 @@ async function confirmPurchase() {
                 total: total,
                 estado: 'Pendiente'
             }]);
-        
+
         if (ventaError) throw ventaError;
-        
+
         // Actualizar stock de productos
         for (const item of cart) {
             const { data: productoData, error: productoError } = await db
@@ -524,39 +510,45 @@ async function confirmPurchase() {
                 .select('stock')
                 .eq('nombre', item.name)
                 .single();
-            
+
             if (productoError) continue;
-            
+
             const nuevoStock = productoData.stock - item.qty;
-            
+            if (nuevoStock < 0) continue;
+
             const { error: updateError } = await db
                 .from('productos')
                 .update({ stock: nuevoStock })
                 .eq('nombre', item.name);
-            
+
             if (!updateError) {
                 console.log(`Stock actualizado: ${item.name} → ${nuevoStock}`);
             }
         }
-       
-         catch (error) {
-              console.error('Error guardando venta:', error);
-         }   finally {
-             // Restaurar botón siempre, haya error o
+    } catch (error) {
+        console.error('Error guardando venta:', error);
+        showToast('⚠️ Error al guardar la venta. Acércate a caja.');
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = originalText;
+        }
+        isProcessingPurchase = false;
     }
+}
 
 /* ============================================
    IMPRIMIR COMPROBANTE
    ============================================ */
 function printTicket() {
     if (!currentSaleNumber) return;
-    
+
     const fecha = new Date().toLocaleDateString('es-PE');
     const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     const productsList = cart.length > 0 ? cart : [];
-    
+
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>Comprobante ${currentSaleNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Courier New',monospace;padding:20px;max-width:300px;margin:0 auto;background:white;color:#000}.header{text-align:center;border-bottom:2px dashed #000;padding-bottom:15px;margin-bottom:15px}.header h1{font-size:18px;margin-bottom:5px}.header h2{font-size:14px;font-weight:normal}.header p{font-size:12px;margin-top:5px}.info{font-size:12px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.info p{margin-bottom:3px}.products{font-size:12px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.product-row{display:flex;justify-content:space-between;margin-bottom:5px}.product-name{flex:1}.product-qty{width:40px;text-align:center}.product-price{width:70px;text-align:right}.totals{font-size:14px;margin-bottom:15px}.total-row{display:flex;justify-content:space-between;margin-bottom:5px}.total-final{font-size:18px;font-weight:bold;border-top:2px solid #000;padding-top:10px;margin-top:10px}.footer{text-align:center;font-size:11px;border-top:2px dashed #000;padding-top:15px}.footer p{margin-bottom:5px}@media print{body{padding:10px}}</style></head><body><div class="header"><h1>FERRETERÍA EL CONSTRUCTOR</h1><h2>Tu socio en construcción</h2><p>RUC: 20100100100</p><p>Av. Principal 123</p><p>Tel: (01) 234-5678</p></div><div class="info"><p><strong>COMPROBANTE DE COMPRA</strong></p><p>N°: ${currentSaleNumber}</p><p>Fecha: ${fecha}</p><p>Hora: ${hora}</p><p>Cliente: ${clientName || 'Walk-In'}</p><p>Estado: PENDIENTE DE PAGO</p></div><div class="products"><div class="product-row" style="font-weight:bold;border-bottom:1px solid #000;padding-bottom:5px;margin-bottom:5px"><span class="product-name">Producto</span><span class="product-qty">Cant</span><span class="product-price">Total</span></div>${productsList.map(item => `<div class="product-row"><span class="product-name">${item.name}</span><span class="product-qty">${item.qty}</span><span class="product-price">S/ ${(item.price * item.qty).toFixed(2)}</span></div>`).join('')}</div><div class="totals"><div class="total-row"><span>Sub Total:</span><span>S/ ${(currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row"><span>IGV (18%):</span><span>S/ ${(currentSaleTotal - currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row total-final"><span>TOTAL:</span><span>S/ ${currentSaleTotal.toFixed(2)}</span></div></div><div class="footer"><p>Presente este comprobante en caja</p><p>para completar su compra</p><p style="margin-top:10px">¡Gracias por su compra!</p></div><script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Comprobante ${currentSaleNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Courier New',monospace;padding:20px;max-width:300px;margin:0 auto;background:white;color:#000}.header{text-align:center;border-bottom:2px dashed #000;padding-bottom:15px;margin-bottom:15px}.header h1{font-size:18px;margin-bottom:5px}.header h2{font-size:14px;font-weight:normal}.header p{font-size:12px;margin-top:5px}.info{font-size:12px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.info p{margin-bottom:3px}.products{font-size:12px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.product-row{display:flex;justify-content:space-between;margin-bottom:5px}.product-name{flex:1}.product-qty{width:40px;text-align:center}.product-price{width:70px;text-align:right}.totals{font-size:14px;margin-bottom:15px}.total-row{display:flex;justify-content:space-between;margin-bottom:5px}.total-final{font-size:18px;font-weight:bold;border-top:2px solid #000;padding-top:10px;margin-top:10px}.footer{text-align:center;font-size:11px;border-top:2px dashed #000;padding-top:15px}.footer p{margin-bottom:5px}@media print{body{padding:10px}}</style></head><body><div class="header"><h1>FERRETERÍA EL CONSTRUCTOR</h1><h2>Tu socio en construcción</h2><p>RUC: 20100100100</p><p>Av. Principal 123</p><p>Tel: (01) 234-5678</p></div><div class="info"><p><strong>COMPROBANTE DE COMPRA</strong></p><p>N°: ${currentSaleNumber}</p><p>Fecha: ${fecha}</p><p>Hora: ${hora}</p><p>Cliente: ${escapeHtml(clientName || 'Walk-In')}</p><p>Estado: PENDIENTE DE PAGO</p></div><div class="products"><div class="product-row" style="font-weight:bold;border-bottom:1px solid #000;padding-bottom:5px;margin-bottom:5px"><span class="product-name">Producto</span><span class="product-qty">Cant</span><span class="product-price">Total</span></div>${productsList.map(item => `<div class="product-row"><span class="product-name">${escapeHtml(item.name)}</span><span class="product-qty">${item.qty}</span><span class="product-price">S/ ${(item.price * item.qty).toFixed(2)}</span></div>`).join('')}</div><div class="totals"><div class="total-row"><span>Sub Total:</span><span>S/ ${(currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row"><span>IGV (18%):</span><span>S/ ${(currentSaleTotal - currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row total-final"><span>TOTAL:</span><span>S/ ${currentSaleTotal.toFixed(2)}</span></div></div><div class="footer"><p>Presente este comprobante en caja</p><p>para completar su compra</p><p style="margin-top:10px">¡Gracias por su compra!</p></div><script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},500);},500)}<\/script></body></html>`);
     printWindow.document.close();
 }
 
@@ -565,55 +557,40 @@ function printTicket() {
    ============================================ */
 function openModal(module) {
     currentModule = module;
-    clearInactivityTimer(); // Pausar timeout mientras el chat está abierto
-    
+    clearInactivityTimer();
+
     const modal = document.getElementById('modal');
-    if (modal) {
-        modal.classList.add('active');
-    }
-    
+    if (modal) modal.classList.add('active');
+
     const response = document.getElementById('response');
-    if (response) {
-        response.style.display = 'none';
-    }
-    
+    if (response) response.style.display = 'none';
+
     const userInput = document.getElementById('userInput');
-    if (userInput) {
-        userInput.value = '';
-    }
-    
+    if (userInput) userInput.value = '';
+
     const sendBtn = document.getElementById('sendBtn');
-    if (sendBtn) {
-        sendBtn.disabled = false;
-    }
-    
+    if (sendBtn) sendBtn.disabled = false;
+
     const titles = {
         'cotizar': 'Cotizar Productos',
         'precio': 'Consultar Precio',
         'asesor': 'Asesoría IA'
     };
-    
+
     const modalTitle = document.getElementById('modalTitle');
-    if (modalTitle) {
-        modalTitle.textContent = titles[module];
-    }
+    if (modalTitle) modalTitle.textContent = titles[module] || 'Asistente IA';
 }
 
 /* ============================================
    CERRAR MODAL
    ============================================ */
-
 function closeModal() {
     const modal = document.getElementById('modal');
-    if (modal) {
-        modal.classList.remove('active');
-    }
-    
-    if (recognition && isListening) {
-        recognition.stop();
-    }
-    
-    resetInactivityTimer(); // Reanudar timeout al cerrar chat
+    if (modal) modal.classList.remove('active');
+
+    if (recognition && isListening) recognition.stop();
+
+    resetInactivityTimer();
 }
 
 /* ============================================
@@ -624,7 +601,7 @@ function toggleVoice() {
         alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
         return;
     }
-    
+
     if (isListening) {
         stopListening();
     } else {
@@ -636,40 +613,28 @@ function toggleVoice() {
    INICIAR ESCUCHA
    ============================================ */
 function startListening() {
-    if (recognition) {
-        recognition.start();
-    }
+    if (recognition) recognition.start();
     isListening = true;
-    
+
     const voiceBtn = document.getElementById('voiceBtn');
-    if (voiceBtn) {
-        voiceBtn.classList.add('listening');
-    }
-    
+    if (voiceBtn) voiceBtn.classList.add('listening');
+
     const userInput = document.getElementById('userInput');
-    if (userInput) {
-        userInput.placeholder = 'Escuchando...';
-    }
+    if (userInput) userInput.placeholder = 'Escuchando...';
 }
 
 /* ============================================
    DETENER ESCUCHA
    ============================================ */
 function stopListening() {
-    if (recognition) {
-        recognition.stop();
-    }
+    if (recognition) recognition.stop();
     isListening = false;
-    
+
     const voiceBtn = document.getElementById('voiceBtn');
-    if (voiceBtn) {
-        voiceBtn.classList.remove('listening');
-    }
-    
+    if (voiceBtn) voiceBtn.classList.remove('listening');
+
     const userInput = document.getElementById('userInput');
-    if (userInput) {
-        userInput.placeholder = 'Escribe o usa el micrófono...';
-    }
+    if (userInput) userInput.placeholder = 'Escribe o usa el micrófono...';
 }
 
 /* ============================================
@@ -678,34 +643,34 @@ function stopListening() {
 async function sendQuestion() {
     const userInput = document.getElementById('userInput');
     if (!userInput) return;
-    
+
     const question = userInput.value.trim();
     if (!question) return;
-    
+
     const responseDiv = document.getElementById('response');
     const responseContent = document.getElementById('responseContent');
     const responseActions = document.getElementById('responseActions');
     const sendBtn = document.getElementById('sendBtn');
-    
+
     if (responseDiv) responseDiv.style.display = 'block';
     if (responseContent) responseContent.innerHTML = '<div class="loading">🤖 La IA está pensando...</div>';
     if (responseActions) responseActions.style.display = 'none';
     if (sendBtn) sendBtn.disabled = true;
-    
+
     try {
         // Obtener contexto de productos disponibles
         const { data: productos, error: productosError } = await db
             .from('productos')
             .select('id, nombre, categoria, precio, stock, unidad, imagen_url')
             .eq('estado', 'activo');
-        
+
         let contextoInventario = '';
         if (productos && productos.length > 0) {
-            contextoInventario = productos.map(p => 
+            contextoInventario = productos.map(p =>
                 `- ${p.nombre} (${p.categoria}): S/ ${p.precio} por ${p.unidad} - Stock: ${p.stock}`
             ).join('\n');
         }
-        
+
         // Llamar a la Edge Function de IA
         const response = await fetch('https://tpdstpnvsyqcvsfminip.supabase.co/functions/v1/asesor-ia', {
             method: 'POST',
@@ -718,65 +683,60 @@ async function sendQuestion() {
                 contexto: contextoInventario
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.error || 'Error en la respuesta de la IA');
         }
-        
+
         currentResponse = data.respuesta;
         currentAudio = data.audio;
-        
+
         // Mostrar respuesta de texto
         if (responseContent) {
-            responseContent.innerHTML = currentResponse.replace(/\n/g, '<br>');
+            responseContent.innerHTML = escapeHtml(currentResponse).replace(/\n/g, '<br>');
         }
-        
-        // MOSTRAR PRODUCTOS VISUALES
 
-       // Búsqueda inteligente: extraer palabras clave
-const query = question.toLowerCase();
-const palabras = query.split(/\s+/).filter(p => p.length > 2); // Palabras de más de 2 letras
+        // Búsqueda inteligente: extraer palabras clave
+        const query = question.toLowerCase();
+        const palabras = query.split(/\s+/).filter(p => p.length > 2);
 
-const productosFiltrados = productos.filter(p => {
-    const nombre = p.nombre.toLowerCase();
-    const categoria = (p.categoria || '').toLowerCase();
-    
-    // Si hay palabras clave, buscar que TODAS estén presentes
-    if (palabras.length > 0) {
-        const todasCoinciden = palabras.every(palabra => 
-            nombre.includes(palabra) || categoria.includes(palabra)
-        );
-        return todasCoinciden;
-    }
-    
-    // Si no hay palabras clave útiles, mostrar todos
-    return nombre.includes(query) || categoria.includes(query);
-}).sort((a, b) => {
-    // Ordenar por relevancia: coincidencia exacta primero
-    const aNombre = a.nombre.toLowerCase();
-    const bNombre = b.nombre.toLowerCase();
-    if (aNombre.includes(query) && !bNombre.includes(query)) return -1;
-    if (!aNombre.includes(query) && bNombre.includes(query)) return 1;
-    return 0;
-});
-        
-      const responseProducts = document.getElementById('responseProducts');
-if (responseProducts) {
-    if (productosFiltrados.length > 0) {
-        responseProducts.style.display = 'block';
+        const productosFiltrados = productos.filter(p => {
+            const nombre = p.nombre.toLowerCase();
+            const categoria = (p.categoria || '').toLowerCase();
 
-                       responseProducts.innerHTML = productosFiltrados.map((prod) => `
+            if (palabras.length > 0) {
+                const todasCoinciden = palabras.every(palabra =>
+                    nombre.includes(palabra) || categoria.includes(palabra)
+                );
+                return todasCoinciden;
+            }
+
+            return nombre.includes(query) || categoria.includes(query);
+        }).sort((a, b) => {
+            const aNombre = a.nombre.toLowerCase();
+            const bNombre = b.nombre.toLowerCase();
+            if (aNombre.includes(query) && !bNombre.includes(query)) return -1;
+            if (!aNombre.includes(query) && bNombre.includes(query)) return 1;
+            return 0;
+        });
+
+        const responseProducts = document.getElementById('responseProducts');
+        if (responseProducts) {
+            if (productosFiltrados.length > 0) {
+                responseProducts.style.display = 'block';
+
+                responseProducts.innerHTML = productosFiltrados.map((prod) => `
                     <div class="product-item">
                         <div class="product-image-small">
-                            ${prod.imagen_url ? 
-                           `<img src="${prod.imagen_url}" alt="${prod.nombre}" onclick="openImageZoom('${prod.imagen_url}', '${prod.nombre.replace(/'/g, "\\'")}', event)">` : 
+                            ${prod.imagen_url ?
+                           `<img src="${escapeHtml(prod.imagen_url)}" alt="${escapeHtml(prod.nombre)}" onclick="openImageZoom('${escapeHtml(prod.imagen_url)}', '${escapeHtml(prod.nombre).replace(/'/g, "\\'")}', event)">` :
                            `<div class="no-image-small">📦</div>`
                              }
                         </div>
                         <div class="product-info">
-                            <div class="product-name">${prod.nombre}</div>
+                            <div class="product-name">${escapeHtml(prod.nombre)}</div>
                             <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
                             <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
                             <div class="quantity-control">
@@ -785,36 +745,33 @@ if (responseProducts) {
                                 <button class="qty-btn" onclick="vibrate(50); increaseQty(${prod.id})">+</button>
                             </div>
                         </div>
-                        <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prod.id}, '${prod.nombre.replace(/'/g, "\\'")}', ${prod.precio})" ${prod.stock === 0 ? 'disabled' : ''}>
+                        <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prod.id}, '${escapeHtml(prod.nombre).replace(/'/g, "\\'")}', ${prod.precio}, ${prod.stock})" ${prod.stock === 0 ? 'disabled' : ''}>
                             Agregar
                         </button>
                     </div>
                 `).join('');
-       
-        // Scroll automático DESPUÉS de generar los productos
-        setTimeout(() => {
-            const chatContainer = document.querySelector('.chat-container');
-            if (chatContainer) {
-                chatContainer.scrollTo({
-                    top: chatContainer.scrollHeight,
-                    behavior: 'smooth'
-                });
+
+                setTimeout(() => {
+                    const chatContainer = document.querySelector('.chat-container');
+                    if (chatContainer) {
+                        chatContainer.scrollTo({
+                            top: chatContainer.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 600);
+
+            } else {
+                responseProducts.style.display = 'none';
             }
-        }, 600);
-        
-    } else {
-        responseProducts.style.display = 'none';
-    }
-}
-       
-        if (responseActions) {
-            responseActions.style.display = 'flex';
         }
-        
+
+        if (responseActions) responseActions.style.display = 'flex';
+
         if (currentAudio) {
             playElevenLabsAudio(currentAudio);
         }
-        
+
     } catch (error) {
         console.error('Error:', error);
         if (responseContent) {
@@ -830,25 +787,19 @@ if (responseProducts) {
    ============================================ */
 function playElevenLabsAudio(audioBase64) {
     if (!audioBase64) return;
-    
+
     const audio = new Audio(audioBase64);
-    
+
     const speakingIndicator = document.getElementById('speakingIndicator');
-    if (speakingIndicator) {
-        speakingIndicator.classList.add('active');
-    }
-    
+    if (speakingIndicator) speakingIndicator.classList.add('active');
+
     audio.onended = () => {
-        if (speakingIndicator) {
-            speakingIndicator.classList.remove('active');
-        }
+        if (speakingIndicator) speakingIndicator.classList.remove('active');
     };
-    
+
     audio.play().catch(error => {
         console.error('Error reproduciendo audio:', error);
-        if (speakingIndicator) {
-            speakingIndicator.classList.remove('active');
-        }
+        if (speakingIndicator) speakingIndicator.classList.remove('active');
     });
 }
 
@@ -857,66 +808,62 @@ function playElevenLabsAudio(audioBase64) {
    ============================================ */
 function speakResponse() {
     if (!currentResponse) return;
-    
-    // Si tenemos audio de ElevenLabs, usarlo
+
     if (currentAudio) {
         playElevenLabsAudio(currentAudio);
         return;
     }
-    
-    // Si no, usar la voz del navegador (fallback)
+
     window.speechSynthesis.cancel();
-    
+
     let cleanText = currentResponse
         .replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').replace(/_/g, '')
         .replace(/#{1,6}\s/g, '').replace(/`/g, '').replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-    
+
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'es-ES';
     utterance.rate = 0.9;
-    
+
     utterance.onstart = () => {
         const speakingIndicator = document.getElementById('speakingIndicator');
         if (speakingIndicator) speakingIndicator.classList.add('active');
     };
-    
+
     utterance.onend = () => {
         const speakingIndicator = document.getElementById('speakingIndicator');
         if (speakingIndicator) speakingIndicator.classList.remove('active');
     };
-    
+
     utterance.onerror = () => {
         const speakingIndicator = document.getElementById('speakingIndicator');
         if (speakingIndicator) speakingIndicator.classList.remove('active');
     };
-    
+
     window.speechSynthesis.speak(utterance);
 }
 
 /* ============================================
    IMPRIMIR COTIZACIÓN
    ============================================ */
-    
- function printQuote() {
+function printQuote() {
     if (!currentResponse) return;
-    
+
     const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
     const numeroCotizacion = 'COT-' + Date.now().toString().slice(-6);
-    
-    // Obtener nombre del negocio desde config
+
     const negocioNombre = document.querySelector('.kiosk-title')?.textContent?.replace('BIENVENIDO A LA\n', '') || 'Ferretería El Constructor';
-    
+
     const cartItems = cart.map(item => ({
         name: item.name,
         price: item.price,
         qty: item.qty,
         subtotal: item.price * item.qty
     }));
-    
+
     const total = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
-    
-    // Crear iframe oculto para impresión
+
     const printFrame = document.createElement('iframe');
+    printFrame.id = 'quotePrintFrame';
     printFrame.style.position = 'fixed';
     printFrame.style.right = '0';
     printFrame.style.bottom = '0';
@@ -924,7 +871,7 @@ function speakResponse() {
     printFrame.style.height = '0';
     printFrame.style.border = '0';
     document.body.appendChild(printFrame);
-    
+
     printFrame.contentDocument.write(`
         <!DOCTYPE html>
         <html>
@@ -959,7 +906,7 @@ function speakResponse() {
             <div class="header">
                 <div>
                     <div class="logo">FC</div>
-                    <div class="company-name">${negocioNombre}</div>
+                    <div class="company-name">${escapeHtml(negocioNombre)}</div>
                     <div class="tagline">Tu socio en construcción</div>
                 </div>
                 <div class="quote-info">
@@ -967,15 +914,15 @@ function speakResponse() {
                     <div class="date">Fecha: ${fecha}</div>
                 </div>
             </div>
-            
+
             <div class="client-info">
                 <div class="client-label">Cliente</div>
-                <div class="client-name">${clientName || 'Cliente General'}</div>
+                <div class="client-name">${escapeHtml(clientName || 'Cliente General')}</div>
             </div>
-            
+
             ${cartItems.length > 0 ? `
             <div class="products-table">
-                <div class="products-title"> Productos Cotizados</div>
+                <div class="products-title">📋 Productos Cotizados</div>
                 <table>
                     <thead>
                         <tr>
@@ -988,7 +935,7 @@ function speakResponse() {
                     <tbody>
                         ${cartItems.map(item => `
                             <tr>
-                                <td>${item.name}</td>
+                                <td>${escapeHtml(item.name)}</td>
                                 <td class="text-right">${item.qty}</td>
                                 <td class="text-right">S/ ${item.price.toFixed(2)}</td>
                                 <td class="text-right">S/ ${item.subtotal.toFixed(2)}</td>
@@ -1002,21 +949,24 @@ function speakResponse() {
                 </table>
             </div>
             ` : '<div style="margin: 20px 0; padding: 15px; background: #fff5f5; border-left: 4px solid #fc8181; border-radius: 5px; color: #c53030;">No hay productos agregados al carrito</div>'}
-            
+
             <div class="footer">
                 <div>Gracias por preferirnos</div>
-                <div class="phone"> (01) 234-5678</div>
+                <div class="phone">📞 (01) 234-5678</div>
                 <div style="margin-top: 10px; font-size: 12px;">Esta cotización tiene una validez de 7 días</div>
             </div>
-            
+
             <script>
                 window.onload = function() {
                     setTimeout(function() {
                         window.print();
-                        window.parent.document.body.removeChild(window.parent.document.querySelector('iframe'));
+                        setTimeout(function() {
+                            var frame = window.parent.document.getElementById('quotePrintFrame');
+                            if (frame) window.parent.document.body.removeChild(frame);
+                        }, 1000);
                     }, 500);
                 };
-            </script>
+            <\/script>
         </body>
         </html>
     `);
@@ -1029,20 +979,15 @@ function speakResponse() {
 function showToast(message) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
-    
+
     if (!toast || !toastMessage) return;
-    
-    // Actualizar mensaje
+
     toastMessage.textContent = message;
-    
-    // Mostrar toast
     toast.classList.remove('hide');
     toast.classList.add('show');
-    
-    // Vibrar si es móvil
+
     vibrate(100);
-    
-    // Ocultar después de 3 segundos
+
     setTimeout(() => {
         toast.classList.remove('show');
         toast.classList.add('hide');
@@ -1050,18 +995,12 @@ function showToast(message) {
 }
 
 /* ============================================
-   ACCESO AL PANEL ADMIN
-   ============================================ */
-// El acceso admin se maneja directamente en admin.html
-// No hay contraseña hardcodeada en el frontend del quiosco
-
-/* ============================================
    MODO OSCURO / CLARO
    ============================================ */
 function toggleTheme() {
     const body = document.body;
     const themeToggle = document.getElementById('themeToggle');
-    
+
     if (body.classList.contains('light-mode')) {
         body.classList.remove('light-mode');
         localStorage.setItem('theme', 'dark');
@@ -1073,19 +1012,6 @@ function toggleTheme() {
     }
 }
 
-// Cargar tema guardado al iniciar
-document.addEventListener('DOMContentLoaded', function() {
-     // Cargar configuración del negocio
-    cargarConfigDesdeQuiosco();
-    const savedTheme = localStorage.getItem('theme');
-    const themeToggle = document.getElementById('themeToggle');
-     
-    if (savedTheme === 'light') {
-        document.body.classList.add('light-mode');
-        if (themeToggle) themeToggle.textContent = '';
-    }
-});
-
 /* ============================================
    CARGAR CONFIGURACIÓN DEL NEGOCIO
    ============================================ */
@@ -1095,14 +1021,13 @@ async function cargarConfigDesdeQuiosco() {
             .from('config_negocio')
             .select('*')
             .single();
-        
+
         if (error) {
             console.log('No hay configuración personalizada');
             return;
         }
-        
+
         if (data) {
-            // Actualizar logo
             if (data.logo_url) {
                 const logos = document.querySelectorAll('.logo-3d img');
                 logos.forEach(img => {
@@ -1110,13 +1035,12 @@ async function cargarConfigDesdeQuiosco() {
                     img.style.opacity = '1';
                 });
             }
-            
-            // Actualizar nombre
+
             if (data.nombre_negocio) {
                 const titulos = document.querySelectorAll('.kiosk-title');
                 titulos.forEach(titulo => {
                     if (titulo.textContent.includes('BIENVENIDO')) {
-                        titulo.innerHTML = `BIENVENIDO A LA<br>${data.nombre_negocio.toUpperCase()}`;
+                        titulo.innerHTML = `BIENVENIDO A LA<br>${escapeHtml(data.nombre_negocio.toUpperCase())}`;
                     }
                 });
             }
@@ -1134,7 +1058,7 @@ function openImageZoom(imageUrl, productName, evt) {
     const modal = document.getElementById('imageZoomModal');
     const zoomedImage = document.getElementById('zoomedImage');
     const zoomedName = document.getElementById('zoomedImageName');
-    
+
     if (modal && zoomedImage) {
         zoomedImage.src = imageUrl;
         zoomedName.textContent = productName || '';
@@ -1154,25 +1078,10 @@ function closeImageZoom() {
 // Cerrar modal al hacer click fuera
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('imageZoomModal');
-    if (modal && e.target === modal) {
-        closeImageZoom();
-    }
+    if (modal && e.target === modal) closeImageZoom();
 });
 
 // Cerrar con tecla ESC
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeImageZoom();
-    }
-});
-
-
-
-// ============================================
-// INICIALIZACIÓN
-// ============================================
-
-// Cargar configuración del negocio al iniciar
-document.addEventListener('DOMContentLoaded', function() {
-    cargarConfigDesdeQuiosco();
+    if (e.key === 'Escape') closeImageZoom();
 });
