@@ -1,6 +1,8 @@
 /* ============================================
-   CONFIGURACIÓN DE SUPABASE
+   VENDEDOR IA - PANEL ADMINISTRATIVO v2.0
+   SaaS Ready | CRUD Productos | WhatsApp
    ============================================ */
+
 const SUPABASE_URL = 'https://tpdstpnvsyqcvsfminip.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZCntTGwCbMRC2A-pL0d8vQ_GwMiH1bt';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -11,6 +13,25 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentPeriod = 'hoy';
 let currentVentaId = null;
 let allVentas = [];
+let allProducts = [];
+let currentEditProductId = null;
+let negocioConfig = {};
+
+const PLANES = {
+    basico: { nombre: 'Básico', max_productos: 50, label: '50 productos' },
+    profesional: { nombre: 'Profesional', max_productos: 200, label: '200 productos' },
+    empresarial: { nombre: 'Empresarial', max_productos: 9999, label: 'Ilimitado' }
+};
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+function escapeHtml(text) {
+    if (typeof text !== 'string') return text;
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 /* ============================================
    INICIALIZACIÓN
@@ -22,6 +43,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') login();
         });
     }
+
+    // Cerrar modales al hacer click fuera
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+                if (this.id === 'productModal') currentEditProductId = null;
+            }
+        });
+    });
 });
 
 /* ============================================
@@ -30,36 +61,32 @@ document.addEventListener('DOMContentLoaded', function() {
 async function login() {
     const passwordInput = document.getElementById('adminPassword');
     const loginError = document.getElementById('loginError');
-    
+
     if (!passwordInput) return;
-    
+
     const password = passwordInput.value.trim();
-    
     if (!password) {
         if (loginError) loginError.textContent = 'Ingresa la contraseña';
         return;
     }
-    
+
     try {
-        // Verificar contraseña desde la base de datos
         const { data, error } = await db
             .from('config_admin')
             .select('valor')
             .eq('clave', 'admin_password')
             .single();
-        
+
         if (error) {
             console.error('Error verificando contraseña:', error);
             if (loginError) loginError.textContent = 'Error de conexión';
             return;
         }
-        
+
         if (data && data.valor === password) {
-            // Contraseña correcta
             showScreen('admin-screen');
             loadDashboard();
         } else {
-            // Contraseña incorrecta
             if (loginError) loginError.textContent = 'Contraseña incorrecta';
             passwordInput.value = '';
             passwordInput.focus();
@@ -70,30 +97,25 @@ async function login() {
     }
 }
 
-/* ============================================
-   LOGOUT
-   ============================================ */
 function logout() {
     const passwordInput = document.getElementById('adminPassword');
     if (passwordInput) passwordInput.value = '';
-    
+
     const loginError = document.getElementById('loginError');
     if (loginError) loginError.textContent = '';
-    
+
     showScreen('login-screen');
 }
 
 /* ============================================
-   NAVEGACIÓN DE PANTALLAS
+   NAVEGACIÓN
    ============================================ */
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
+    const screen = document.getElementById(screenId);
+    if (screen) screen.classList.add('active');
 }
 
-/* ============================================
-   CARGAR DASHBOARD
-   ============================================ */
 /* ============================================
    CARGAR DASHBOARD
    ============================================ */
@@ -112,40 +134,28 @@ async function loadDashboard() {
    ============================================ */
 function filterPeriod(period) {
     currentPeriod = period;
-    
-    // Actualizar botones activos
     document.querySelectorAll('.btn-filter').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.period === period) {
-            btn.classList.add('active');
-        }
+        if (btn.dataset.period === period) btn.classList.add('active');
     });
-    
     loadVentas();
+    loadTopProductos();
 }
 
-/* ============================================
-   OBTENER RANGO DE FECHAS
-   ============================================ */
 function getDateRange(period) {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-    
+
     switch(period) {
-        case 'hoy':
-            return { start: today, end: today };
+        case 'hoy': return { start: today, end: today };
         case 'semana':
-            const weekAgo = new Date(now);
-            weekAgo.setDate(weekAgo.getDate() - 7);
+            const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
             return { start: weekAgo.toISOString().split('T')[0], end: today };
         case 'mes':
-            const monthAgo = new Date(now);
-            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            const monthAgo = new Date(now); monthAgo.setMonth(monthAgo.getMonth() - 1);
             return { start: monthAgo.toISOString().split('T')[0], end: today };
-        case 'todo':
-            return { start: '2020-01-01', end: today };
-        default:
-            return { start: today, end: today };
+        case 'todo': return { start: '2020-01-01', end: today };
+        default: return { start: today, end: today };
     }
 }
 
@@ -155,51 +165,49 @@ function getDateRange(period) {
 async function loadVentas() {
     const ventasList = document.getElementById('ventasList');
     if (!ventasList) return;
-    
+
     ventasList.innerHTML = '<div class="empty-state">Cargando ventas...</div>';
-    
+
     try {
         const { start, end } = getDateRange(currentPeriod);
-        
+
         const { data, error } = await db
             .from('ventas')
             .select('*')
             .gte('fecha', start)
             .lte('fecha', end)
             .order('id', { ascending: false });
-        
+
         if (error) throw error;
-        
+
         allVentas = data || [];
-        
+
         if (allVentas.length === 0) {
             ventasList.innerHTML = '<div class="empty-state">No hay ventas en este período</div>';
             updateStats();
             return;
         }
-        
-        // Renderizar lista de ventas
+
         ventasList.innerHTML = allVentas.map(venta => `
             <div class="venta-item">
                 <div class="venta-info">
-                    <div class="venta-number">${venta.numero_venta}</div>
+                    <div class="venta-number">${escapeHtml(venta.numero_venta)}</div>
                     <div class="venta-details">${venta.fecha} - ${venta.hora}</div>
-                    <div class="venta-client">👤 ${venta.cliente || 'Walk-In'}</div>
+                    <div class="venta-client">👤 ${escapeHtml(venta.cliente || 'Walk-In')}</div>
                 </div>
                 <div class="venta-right">
                     <div class="venta-total">S/ ${parseFloat(venta.total).toFixed(2)}</div>
                     <span class="venta-status ${venta.estado.toLowerCase()}">${venta.estado}</span>
                     ${venta.estado === 'Pendiente' ? `
-                        <button class="btn-cobrar" onclick="openConfirmModal(${venta.id}, '${venta.numero_venta}', ${venta.total})">
+                        <button class="btn-cobrar" onclick="openConfirmModal(${venta.id}, '${escapeHtml(venta.numero_venta)}', ${venta.total})">
                             💵 Cobrar
                         </button>
                     ` : ''}
                 </div>
             </div>
         `).join('');
-        
+
         updateStats();
-        
     } catch (error) {
         console.error('Error cargando ventas:', error);
         ventasList.innerHTML = '<div class="empty-state">Error al cargar ventas</div>';
@@ -207,19 +215,19 @@ async function loadVentas() {
 }
 
 /* ============================================
-   ACTUALIZAR ESTADÍSTICAS
+   ESTADÍSTICAS
    ============================================ */
 function updateStats() {
     const totalVentas = allVentas.reduce((sum, v) => sum + parseFloat(v.total || 0), 0);
     const numVentas = allVentas.length;
     const pagadas = allVentas.filter(v => v.estado === 'Pagado').length;
     const pendientes = allVentas.filter(v => v.estado === 'Pendiente').length;
-    
+
     const elTotal = document.getElementById('totalVentas');
     const elNum = document.getElementById('numVentas');
     const elPag = document.getElementById('ventasPagadas');
     const elPen = document.getElementById('ventasPendientes');
-    
+
     if (elTotal) elTotal.textContent = `S/ ${totalVentas.toFixed(2)}`;
     if (elNum) elNum.textContent = numVentas;
     if (elPag) elPag.textContent = pagadas;
@@ -227,14 +235,13 @@ function updateStats() {
 }
 
 /* ============================================
-   CARGAR STOCK BAJO
+   STOCK BAJO
    ============================================ */
 async function loadStockBajo() {
     const alertSection = document.getElementById('alertSection');
     const alertList = document.getElementById('alertList');
-    
     if (!alertSection || !alertList) return;
-    
+
     try {
         const { data, error } = await db
             .from('productos')
@@ -242,15 +249,15 @@ async function loadStockBajo() {
             .eq('estado', 'activo')
             .lte('stock', 10)
             .order('stock', { ascending: true });
-        
+
         if (error) throw error;
-        
+
         if (data && data.length > 0) {
             alertSection.style.display = 'block';
             alertList.innerHTML = data.map(p => `
                 <div class="alert-item">
-                    <span>${p.nombre}</span>
-                    <span class="stock-value">${p.stock} ${p.unidad}</span>
+                    <span>${escapeHtml(p.nombre)}</span>
+                    <span class="stock-value">${p.stock} ${escapeHtml(p.unidad)}</span>
                 </div>
             `).join('');
         } else {
@@ -263,38 +270,34 @@ async function loadStockBajo() {
 }
 
 /* ============================================
-   CARGAR TOP PRODUCTOS
+   TOP PRODUCTOS
    ============================================ */
 async function loadTopProductos() {
     const topProducts = document.getElementById('topProducts');
     if (!topProducts) return;
-    
+
     topProducts.innerHTML = '<div class="empty-state">Cargando...</div>';
-    
+
     try {
         const { start, end } = getDateRange(currentPeriod);
-        
+
         const { data, error } = await db
             .from('ventas')
             .select('productos')
             .gte('fecha', start)
             .lte('fecha', end)
             .eq('estado', 'Pagado');
-        
+
         if (error) throw error;
-        
+
         if (!data || data.length === 0) {
             topProducts.innerHTML = '<div class="empty-state">No hay productos vendidos aún</div>';
             return;
         }
-        
-        // Procesar productos vendidos
+
         const productCount = {};
-        
         data.forEach(venta => {
             if (!venta.productos) return;
-            
-            // Formato: "2 x Cemento Andino (S/ 100.00), 1 x Taladro (S/ 250.00)"
             const items = venta.productos.split(',');
             items.forEach(item => {
                 const match = item.match(/(\d+)\s*x\s*(.+?)\s*\(/);
@@ -305,25 +308,23 @@ async function loadTopProductos() {
                 }
             });
         });
-        
-        // Ordenar por cantidad
+
         const sorted = Object.entries(productCount)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
-        
+
         if (sorted.length === 0) {
             topProducts.innerHTML = '<div class="empty-state">No hay productos vendidos aún</div>';
             return;
         }
-        
+
         topProducts.innerHTML = sorted.map((item, idx) => `
             <div class="top-product-item">
                 <div class="top-product-rank">${idx + 1}</div>
-                <div class="top-product-name">${item[0]}</div>
+                <div class="top-product-name">${escapeHtml(item[0])}</div>
                 <div class="top-product-qty">${item[1]} unid.</div>
             </div>
         `).join('');
-        
     } catch (error) {
         console.error('Error cargando top productos:', error);
         topProducts.innerHTML = '<div class="empty-state">Error al cargar</div>';
@@ -335,15 +336,13 @@ async function loadTopProductos() {
    ============================================ */
 function openConfirmModal(ventaId, numeroVenta, total) {
     currentVentaId = ventaId;
-    
     const confirmMessage = document.getElementById('confirmMessage');
     if (confirmMessage) {
         confirmMessage.innerHTML = `
-            ¿Confirmar el pago de la venta <strong>${numeroVenta}</strong><br>
+            ¿Confirmar el pago de la venta <strong>${escapeHtml(numeroVenta)}</strong><br>
             por un total de <strong>S/ ${parseFloat(total).toFixed(2)}</strong>?
         `;
     }
-    
     const modal = document.getElementById('confirmModal');
     if (modal) modal.classList.add('active');
 }
@@ -354,38 +353,27 @@ function closeConfirmModal() {
     if (modal) modal.classList.remove('active');
 }
 
-/* ============================================
-   CONFIRMAR PAGO
-   ============================================ */
 async function confirmarPago() {
     if (!currentVentaId) return;
-    
+
     try {
-        // 1. Actualizar estado de la venta a "Pagado"
         const { error: updateError } = await db
             .from('ventas')
             .update({ estado: 'Pagado' })
             .eq('id', currentVentaId);
-        
+
         if (updateError) throw updateError;
-        
-        // 2. Registrar el cambio en el log
-        await db
-            .from('ventas_estado_log')
-            .insert([{
-                venta_id: currentVentaId,
-                estado_anterior: 'Pendiente',
-                estado_nuevo: 'Pagado',
-                usuario: 'Admin'
-            }]);
-        
-        // 3. Cerrar modal y recargar
+
+        await db.from('ventas_estado_log').insert([{
+            venta_id: currentVentaId,
+            estado_anterior: 'Pendiente',
+            estado_nuevo: 'Pagado',
+            usuario: 'Admin'
+        }]);
+
         closeConfirmModal();
         await loadVentas();
-        
-        // 4. Mostrar notificación
-        showToast('Pago confirmado exitosamente');
-        
+        showToast('✅ Pago confirmado exitosamente');
     } catch (error) {
         console.error('Error confirmando pago:', error);
         alert('❌ Error al confirmar el pago');
@@ -393,352 +381,434 @@ async function confirmarPago() {
 }
 
 /* ============================================
-   CERRAR MODAL AL HACER CLICK FUERA
-   ============================================ */
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('confirmModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) closeConfirmModal();
-        });
-    }
-});
-
-/* ============================================
-   MOSTRAR TOAST
-   ============================================ */
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    
-    if (!toast || !toastMessage) return;
-    
-    toastMessage.textContent = message;
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
-
-/* ============================================
    CONFIGURACIÓN DEL NEGOCIO
    ============================================ */
-
-// Cargar configuración al iniciar el dashboard
 async function cargarConfigNegocio() {
     try {
         const { data, error } = await db
             .from('config_negocio')
             .select('*')
             .single();
-        
+
         if (error) {
             console.error('Error cargando config:', error);
             return;
         }
-        
+
         if (data) {
-            // Actualizar campos del formulario
+            negocioConfig = data;
+
             const elNombre = document.getElementById('configNombre');
             const elLogo = document.getElementById('configLogo');
+            const elWhatsapp = document.getElementById('configWhatsapp');
+            const elTelefono = document.getElementById('configTelefono');
+            const elDireccion = document.getElementById('configDireccion');
+            const elPlan = document.getElementById('configPlan');
             const elPreview = document.getElementById('logoPreviewImg');
-            
+
             if (elNombre) elNombre.value = data.nombre_negocio || '';
             if (elLogo) elLogo.value = data.logo_url || '';
-            
-            // Actualizar preview si existe
+            if (elWhatsapp) elWhatsapp.value = data.whatsapp || '';
+            if (elTelefono) elTelefono.value = data.telefono || '';
+            if (elDireccion) elDireccion.value = data.direccion || '';
+            if (elPlan) elPlan.value = data.plan || 'basico';
+
             if (elPreview) {
                 if (data.logo_url) {
                     elPreview.src = data.logo_url;
-                    elPreview.alt = data.nombre_negocio || 'Logo';
                     elPreview.style.display = 'block';
                 } else {
                     elPreview.style.display = 'none';
                 }
             }
-            
-            // ACTUALIZAR LOGO EN EL LOGIN (esto es lo que faltaba)
-            const loginLogo = document.querySelector('#login-screen .logo-3d img');
-            if (loginLogo && data.logo_url) {
-                loginLogo.src = data.logo_url;
-                loginLogo.alt = data.nombre_negocio || 'Logo';
-            }
-            
-            // Actualizar subtítulo del login
-            const loginSubtitle = document.querySelector('#login-screen .subtitle');
-            if (loginSubtitle && data.nombre_negocio) {
-                loginSubtitle.textContent = data.nombre_negocio;
-            }
-            
-            // Actualizar logo en el header del dashboard
+
+            // Actualizar logo en login y header
             actualizarLogoEnPanel(data.logo_url, data.nombre_negocio);
+
+            // Mostrar info del plan
+            mostrarInfoPlan(data.plan || 'basico');
         }
     } catch (error) {
         console.error('Error cargando configuración:', error);
     }
 }
-// Guardar configuración
+
+function mostrarInfoPlan(planKey) {
+    const planInfo = document.getElementById('planInfo');
+    const plan = PLANES[planKey] || PLANES.basico;
+    if (planInfo) {
+        planInfo.innerHTML = `
+            <div class="plan-badge plan-${planKey}">
+                <strong>Plan ${plan.nombre}</strong> — Hasta ${plan.label}
+            </div>
+        `;
+    }
+}
+
 async function guardarConfig() {
     const nombre = document.getElementById('configNombre').value.trim();
     const logoUrl = document.getElementById('configLogo').value.trim();
-    
+    const whatsapp = document.getElementById('configWhatsapp').value.trim();
+    const telefono = document.getElementById('configTelefono').value.trim();
+    const direccion = document.getElementById('configDireccion').value.trim();
+    const plan = document.getElementById('configPlan').value;
+
     if (!nombre) {
         alert('Ingresa el nombre del negocio');
         return;
     }
-    
+
     try {
         const { error } = await db
             .from('config_negocio')
             .update({
                 nombre_negocio: nombre,
                 logo_url: logoUrl,
+                whatsapp: whatsapp,
+                telefono: telefono,
+                direccion: direccion,
+                plan: plan,
                 updated_at: new Date().toISOString()
             })
             .eq('id', 1);
-        
+
         if (error) throw error;
-        
+
         showToast('✅ Configuración guardada correctamente');
-        
-        // Actualizar logo en toda la app
         actualizarLogoEnApp(logoUrl, nombre);
-        
+        mostrarInfoPlan(plan);
     } catch (error) {
         console.error('Error guardando configuración:', error);
         alert('❌ Error al guardar la configuración');
     }
 }
 
-// Actualizar logo en toda la aplicación
 function actualizarLogoEnApp(logoUrl, nombreNegocio) {
-    // Actualizar en el quiosco (index.html)
-    const logosQuiosco = document.querySelectorAll('.logo-3d img');
-    logosQuiosco.forEach(img => {
-        // LIMPIAR primero
-        img.src = '';
-        img.style.opacity = '0';
-        
-        // Luego cargar nuevo logo
-        setTimeout(() => {
-            if (logoUrl) {
-                img.src = logoUrl;
-                img.style.opacity = '1';
-            }
-            if (nombreNegocio) img.alt = nombreNegocio;
-        }, 100);
+    const logos = document.querySelectorAll('.logo-3d img');
+    logos.forEach(img => {
+        if (logoUrl) {
+            img.src = logoUrl;
+            img.style.opacity = '1';
+        }
+        if (nombreNegocio) img.alt = nombreNegocio;
     });
-    
-    // Actualizar títulos
+
     const titulos = document.querySelectorAll('.kiosk-title');
     titulos.forEach(titulo => {
         if (nombreNegocio && titulo.textContent.includes('BIENVENIDO')) {
-            titulo.innerHTML = `BIENVENIDO A LA<br>${nombreNegocio.toUpperCase()}`;
+            titulo.innerHTML = `BIENVENIDO A LA<br>${escapeHtml(nombreNegocio.toUpperCase())}`;
         }
     });
 }
 
 function actualizarLogoEnPanel(logoUrl, nombreNegocio) {
-    // Actualizar logo en TODOS los lugares del admin (login + header)
     const logos = document.querySelectorAll('.logo-3d img');
     logos.forEach(img => {
-        if (logoUrl) {
-            img.src = logoUrl;
-        }
-        if (nombreNegocio) {
-            img.alt = nombreNegocio;
-        }
+        if (logoUrl) img.src = logoUrl;
+        if (nombreNegocio) img.alt = nombreNegocio;
     });
-    
-    // Actualizar subtítulo si existe
+
     const subtitle = document.querySelector('.subtitle');
-    if (subtitle && nombreNegocio) {
-        subtitle.textContent = nombreNegocio;
-    }
+    if (subtitle && nombreNegocio) subtitle.textContent = nombreNegocio;
 }
 
-// Mostrar modal para subir logo
-function mostrarSubirLogo() {
-    const url = prompt('Ingresa la URL de tu logo:\n\nPuedes subir tu logo a:\n- https://imgbb.com/\n- https://postimages.org/\n\nY pegar el enlace aquí:');
-    
-    if (url) {
-        document.getElementById('configLogo').value = url;
-        document.getElementById('logoPreviewImg').src = url;
-    }
-}
-
-
-/* ============================================
-   SUBIR LOGO DESDE ARCHIVO LOCAL
-   ============================================ */
-async function handleLogoUpload(event) {
+function handleLogoUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
-    // Verificar tamaño (máx 5MB)
+
     if (file.size > 5 * 1024 * 1024) {
         alert('El logo debe ser menor a 5MB');
         return;
     }
-    
-    // Mostrar loading
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = ' Subiendo...';
-    btn.disabled = true;
-    
-    try {
-        // Opción 1: Usar ImgBB (gratis, requiere API key)
-        // Opción 2: Usar Cloudinary (gratis, más profesional)
-        // Opción 3: Guardar en Supabase Storage (recomendado)
-        
-        // Por ahora, usaremos una solución simple:
-        // Convertir a base64 y mostrar preview
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64Url = e.target.result;
-            
-            // Actualizar input y preview
-            document.getElementById('configLogo').value = base64Url;
-            document.getElementById('logoPreviewImg').src = base64Url;
-            
-            showToast('✅ Logo cargado correctamente');
-            
-            btn.textContent = originalText;
-            btn.disabled = false;
-        };
-        reader.readAsDataURL(file);
-        
-    } catch (error) {
-        console.error('Error subiendo logo:', error);
-        alert('❌ Error al subir el logo');
-        btn.textContent = originalText;
-        btn.disabled = false;
-    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Url = e.target.result;
+        document.getElementById('configLogo').value = base64Url;
+        const preview = document.getElementById('logoPreviewImg');
+        if (preview) {
+            preview.src = base64Url;
+            preview.style.display = 'block';
+        }
+        showToast('✅ Logo cargado correctamente');
+    };
+    reader.readAsDataURL(file);
 }
-/* ============================================
-   FORZAR CARGA DE CONFIG AL INICIAR
-   ============================================ */
-window.addEventListener('load', function() {
-    setTimeout(() => {
-        cargarConfigNegocio();
-    }, 500);
-});
 
 /* ============================================
-   GESTIÓN DE PRODUCTOS
+   CRUD DE PRODUCTOS
    ============================================ */
-let allProducts = [];
-
-// Cargar productos al iniciar el dashboard
 async function cargarProductosAdmin() {
     try {
         const { data, error } = await db
             .from('productos')
             .select('*')
-            .eq('estado', 'activo')
             .order('nombre', { ascending: true });
-        
+
         if (error) throw error;
-        
+
         allProducts = data || [];
         renderProductosAdmin(allProducts);
-        
+        actualizarContadorProductos();
     } catch (error) {
         console.error('Error cargando productos:', error);
+    }
+}
+
+function actualizarContadorProductos() {
+    const activos = allProducts.filter(p => p.estado === 'activo').length;
+    const inactivos = allProducts.filter(p => p.estado === 'inactivo').length;
+    const el = document.getElementById('productsCounter');
+    if (el) {
+        el.innerHTML = `<span class="counter-activos">${activos} activos</span> | <span class="counter-inactivos">${inactivos} inactivos</span>`;
     }
 }
 
 function renderProductosAdmin(products) {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
-    
+
     if (products.length === 0) {
         grid.innerHTML = '<div class="empty-state">No se encontraron productos</div>';
         return;
     }
-    
+
     grid.innerHTML = products.map(prod => `
-        <div class="product-card">
+        <div class="product-card ${prod.estado === 'inactivo' ? 'product-inactive' : ''}">
             <div class="product-card-header">
-                <div class="product-card-name">${prod.nombre}</div>
+                <div class="product-card-name">${escapeHtml(prod.nombre)}</div>
+                <span class="product-badge ${prod.estado}">${prod.estado}</span>
             </div>
-            <div class="product-card-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
-            <div class="product-card-stock">Stock: ${prod.stock} ${prod.unidad || 'unid.'}</div>
-            
+            <div class="product-card-meta">
+                <span class="product-card-category">${escapeHtml(prod.categoria || 'General')}</span>
+                <span class="product-card-price">S/ ${parseFloat(prod.precio).toFixed(2)}</span>
+            </div>
+            <div class="product-card-stock">Stock: ${prod.stock} ${escapeHtml(prod.unidad || 'unid.')}</div>
+
             <div class="product-image-container">
-                ${prod.imagen_url ? 
-                    `<img src="${prod.imagen_url}" alt="${prod.nombre}">` : 
+                ${prod.imagen_url ?
+                    `<img src="${escapeHtml(prod.imagen_url)}" alt="${escapeHtml(prod.nombre)}">` :
                     `<div class="no-image">Sin imagen<br>📦</div>`
                 }
             </div>
-            
-            <input type="file" id="img-${prod.id}" class="product-image-input" accept="image/*" onchange="subirImagenProducto(event, ${prod.id})">
-            <button class="btn-upload-image" onclick="document.getElementById('img-${prod.id}').click()">
-                📁 ${prod.imagen_url ? 'Cambiar Imagen' : 'Subir Imagen'}
-            </button>
+
+            <div class="product-card-actions">
+                <button class="btn-action-card edit" onclick="openProductModal(${prod.id})">✏️ Editar</button>
+                ${prod.estado === 'activo' ?
+                    `<button class="btn-action-card delete" onclick="eliminarProducto(${prod.id})">🗑️ Desactivar</button>` :
+                    `<button class="btn-action-card restore" onclick="restaurarProducto(${prod.id})">✅ Activar</button>`
+                }
+            </div>
         </div>
     `).join('');
 }
 
+function filtrarProductosAdmin() {
+    const search = document.getElementById('searchProductAdmin').value.toLowerCase();
+    const filtroEstado = document.getElementById('filterEstado').value;
+
+    let filtered = allProducts;
+
+    if (search) {
+        filtered = filtered.filter(p => p.nombre.toLowerCase().includes(search));
+    }
+
+    if (filtroEstado !== 'todos') {
+        filtered = filtered.filter(p => p.estado === filtroEstado);
+    }
+
+    renderProductosAdmin(filtered);
+}
+
+/* ============================================
+   MODAL PRODUCTO (CREAR / EDITAR)
+   ============================================ */
+function openProductModal(productId = null) {
+    currentEditProductId = productId;
+    const modal = document.getElementById('productModal');
+    const title = document.getElementById('productModalTitle');
+    const form = document.getElementById('productForm');
+
+    if (title) title.textContent = productId ? '✏️ Editar Producto' : '➕ Nuevo Producto';
+
+    if (productId) {
+        const producto = allProducts.find(p => p.id === productId);
+        if (producto) {
+            document.getElementById('prodNombre').value = producto.nombre;
+            document.getElementById('prodCategoria').value = producto.categoria || '';
+            document.getElementById('prodPrecio').value = producto.precio;
+            document.getElementById('prodStock').value = producto.stock;
+            document.getElementById('prodUnidad').value = producto.unidad || 'unid.';
+            document.getElementById('prodImagen').value = producto.imagen_url || '';
+            document.getElementById('prodEstado').value = producto.estado || 'activo';
+        }
+    } else {
+        form.reset();
+        document.getElementById('prodUnidad').value = 'unid.';
+        document.getElementById('prodEstado').value = 'activo';
+    }
+
+    if (modal) modal.classList.add('active');
+}
+
+function closeProductModal() {
+    currentEditProductId = null;
+    const modal = document.getElementById('productModal');
+    if (modal) modal.classList.remove('active');
+}
+
+async function guardarProducto() {
+    const nombre = document.getElementById('prodNombre').value.trim();
+    const categoria = document.getElementById('prodCategoria').value.trim();
+    const precio = parseFloat(document.getElementById('prodPrecio').value);
+    const stock = parseInt(document.getElementById('prodStock').value);
+    const unidad = document.getElementById('prodUnidad').value.trim();
+    const imagen_url = document.getElementById('prodImagen').value.trim();
+    const estado = document.getElementById('prodEstado').value;
+
+    if (!nombre || isNaN(precio) || isNaN(stock)) {
+        alert('Completa todos los campos obligatorios correctamente');
+        return;
+    }
+
+    try {
+        if (currentEditProductId) {
+            // EDITAR
+            const { error } = await db
+                .from('productos')
+                .update({
+                    nombre, categoria, precio, stock, unidad,
+                    imagen_url: imagen_url || null,
+                    estado,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', currentEditProductId);
+
+            if (error) throw error;
+            showToast('✅ Producto actualizado');
+        } else {
+            // CREAR — Validar límite del plan
+            const plan = negocioConfig.plan || 'basico';
+            const maxProd = PLANES[plan].max_productos;
+            const activos = allProducts.filter(p => p.estado === 'activo').length;
+
+            if (activos >= maxProd) {
+                alert(`❌ Has alcanzado el límite de ${maxProd} productos del plan ${PLANES[plan].nombre}. Upgradea tu plan.`);
+                return;
+            }
+
+            const { error } = await db
+                .from('productos')
+                .insert([{
+                    nombre, categoria, precio, stock, unidad,
+                    imagen_url: imagen_url || null,
+                    estado,
+                    created_at: new Date().toISOString()
+                }]);
+
+            if (error) throw error;
+            showToast('✅ Producto creado exitosamente');
+        }
+
+        closeProductModal();
+        await cargarProductosAdmin();
+    } catch (error) {
+        console.error('Error guardando producto:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+async function eliminarProducto(productId) {
+    if (!confirm('¿Desactivar este producto? Ya no aparecerá en el quiosco.')) return;
+
+    try {
+        const { error } = await db
+            .from('productos')
+            .update({ estado: 'inactivo' })
+            .eq('id', productId);
+
+        if (error) throw error;
+        showToast('✅ Producto desactivado');
+        await cargarProductosAdmin();
+    } catch (error) {
+        console.error('Error desactivando producto:', error);
+        alert('❌ Error al desactivar');
+    }
+}
+
+async function restaurarProducto(productId) {
+    try {
+        const { error } = await db
+            .from('productos')
+            .update({ estado: 'activo' })
+            .eq('id', productId);
+
+        if (error) throw error;
+        showToast('✅ Producto activado');
+        await cargarProductosAdmin();
+    } catch (error) {
+        console.error('Error activando producto:', error);
+        alert('❌ Error al activar');
+    }
+}
+
+/* ============================================
+   SUBIR IMAGEN DE PRODUCTO (STORAGE)
+   ============================================ */
 async function subirImagenProducto(event, productoId) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     if (file.size > 5 * 1024 * 1024) {
         alert('La imagen debe ser menor a 5MB');
         return;
     }
-    
+
     const producto = allProducts.find(p => p.id === productoId);
     if (!producto) return;
-    
-    // Crear nombre único para el archivo
-    const fileName = `${productoId}_${Date.now()}.${file.name.split('.').pop()}`;
-    
+
+    const fileName = `producto_${productoId}_${Date.now()}.${file.name.split('.').pop()}`;
+
     try {
-        // Subir a Supabase Storage
         const { data, error } = await db.storage
             .from('productos')
-            .upload(fileName, file, {
-                cacheControl: '3600',
-                upsert: false
-            });
-        
+            .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
         if (error) throw error;
-        
-        // Obtener URL pública
+
         const { data: urlData } = db.storage
             .from('productos')
             .getPublicUrl(fileName);
-        
+
         const imageUrl = urlData.publicUrl;
-        
-        // Actualizar producto en BD
+
         const { error: updateError } = await db
             .from('productos')
             .update({ imagen_url: imageUrl })
             .eq('id', productoId);
-        
+
         if (updateError) throw updateError;
-        
+
         showToast('✅ Imagen subida correctamente');
-        
-        // Recargar productos
         await cargarProductosAdmin();
-        
     } catch (error) {
         console.error('Error subiendo imagen:', error);
         alert('❌ Error al subir la imagen: ' + error.message);
     }
 }
 
-function filtrarProductosAdmin() {
-    const search = document.getElementById('searchProductAdmin').value.toLowerCase();
-    const filtered = allProducts.filter(p => 
-        p.nombre.toLowerCase().includes(search)
-    );
-    renderProductosAdmin(filtered);
-}
+/* ============================================
+   TOAST
+   ============================================ */
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    if (!toast || !toastMessage) return;
 
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}

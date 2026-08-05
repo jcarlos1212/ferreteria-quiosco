@@ -1,6 +1,8 @@
 /* ============================================
-   CONFIGURACIÓN DE SUPABASE
+   VENDEDOR IA - QUIOSCO INTELIGENTE v2.0
+   SaaS Ready | PWA | WhatsApp | Sugerencias
    ============================================ */
+
 const SUPABASE_URL = 'https://tpdstpnvsyqcvsfminip.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZCntTGwCbMRC2A-pL0d8vQ_GwMiH1bt';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -19,13 +21,26 @@ let cart = [];
 let currentSaleNumber = '';
 let currentSaleTotal = 0;
 let productQuantities = {};
+let allProductsCache = [];
+let negocioConfig = {};
 
 let inactivityTimer = null;
-const INACTIVITY_TIMEOUT = 120000; // 2 minutos
+const INACTIVITY_TIMEOUT = 120000;
 let isProcessingPurchase = false;
+const CART_STORAGE_KEY = 'vendedor_ia_cart';
+const CLIENT_STORAGE_KEY = 'vendedor_ia_client';
 
 /* ============================================
-   UTILIDADES - SANITIZACIÓN ANTI-XSS
+   REGISTRO PWA
+   ============================================ */
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW registrado'))
+        .catch(err => console.log('SW error:', err));
+}
+
+/* ============================================
+   UTILIDADES
    ============================================ */
 function escapeHtml(text) {
     if (typeof text !== 'string') return text;
@@ -34,13 +49,27 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-/* ============================================
-   VIBRACIÓN AL TOCAR
-   ============================================ */
 function vibrate(duration = 50) {
-    if ('vibrate' in navigator) {
-        navigator.vibrate(duration);
-    }
+    if ('vibrate' in navigator) navigator.vibrate(duration);
+}
+
+/* ============================================
+   PERSISTENCIA DE CARRITO
+   ============================================ */
+function saveCart() {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+}
+
+function loadCart() {
+    try {
+        const saved = localStorage.getItem(CART_STORAGE_KEY);
+        if (saved) cart = JSON.parse(saved);
+    } catch (e) { cart = []; }
+}
+
+function clearCartStorage() {
+    localStorage.removeItem(CART_STORAGE_KEY);
+    localStorage.removeItem(CLIENT_STORAGE_KEY);
 }
 
 /* ============================================
@@ -95,7 +124,7 @@ function clearInactivityTimer() {
 }
 
 /* ============================================
-   EVENTOS DEL TECLADO
+   EVENTOS DEL TECLADO + INICIALIZACIÓN
    ============================================ */
 document.addEventListener('DOMContentLoaded', function() {
     const clientNameInput = document.getElementById('clientName');
@@ -126,15 +155,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Cargar configuración del negocio al iniciar
     cargarConfigDesdeQuiosco();
 
-    // Cargar tema guardado
     const savedTheme = localStorage.getItem('theme');
     const themeToggle = document.getElementById('themeToggle');
     if (savedTheme === 'light') {
         document.body.classList.add('light-mode');
         if (themeToggle) themeToggle.textContent = '🌙';
+    }
+
+    // Pre-cargar voces
+    if (window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => {};
+        window.speechSynthesis.getVoices();
     }
 });
 
@@ -162,15 +195,20 @@ function startSession() {
     }
 
     clientName = nameValue;
+    localStorage.setItem(CLIENT_STORAGE_KEY, clientName);
+
     const greetingText = document.getElementById('greetingText');
     if (greetingText) {
         greetingText.innerHTML = `¡Hola <strong>${escapeHtml(clientName)}</strong>! Soy tu asistente virtual.<br>Por favor elige una de las opciones y te ayudaré.`;
     }
 
+    // Restaurar carrito si existe
+    loadCart();
+    updateCartCount();
+
     showScreen('screen-menu');
     resetInactivityTimer();
 
-    // Saludo por voz automático
     setTimeout(() => {
         const saludo = `¡Hola ${clientName}! Soy tu asistente virtual. Por favor elige una de las opciones y te ayudaré.`;
         const utterance = new SpeechSynthesisUtterance(saludo);
@@ -228,6 +266,7 @@ function resetToWelcome() {
     currentSaleNumber = '';
     currentSaleTotal = 0;
     productQuantities = {};
+    clearCartStorage();
 
     const clientNameInput = document.getElementById('clientName');
     if (clientNameInput) clientNameInput.value = '';
@@ -285,12 +324,14 @@ async function searchProducts() {
         if (error) throw error;
 
         if (data && data.length > 0) {
+            allProductsCache = data;
             const products = data.map(p => ({
                 id: p.id,
                 name: p.nombre,
                 price: parseFloat(p.precio),
                 stock: p.stock,
                 unidad: p.unidad,
+                categoria: p.categoria,
                 imagen_url: p.imagen_url,
                 qty: 1
             }));
@@ -323,9 +364,10 @@ function displayProducts(products) {
         const unidad = escapeHtml(prod.unidad || prod.unit || 'unid.');
         const imagen_url = prod.imagen_url || prod.imagen || null;
         const prodId = prod.id || 0;
+        const categoria = escapeHtml(prod.categoria || 'General');
 
         return `
-        <div class="product-item">
+        <div class="product-item" data-categoria="${categoria}">
             <div class="product-image-small">
                 ${imagen_url ?
                  `<img src="${escapeHtml(imagen_url)}" alt="${nombre}" onclick="openImageZoom('${escapeHtml(imagen_url)}', '${nombre.replace(/'/g, "\\'")}', event)">` :
@@ -342,7 +384,7 @@ function displayProducts(products) {
                     <button class="qty-btn" onclick="vibrate(50); increaseQty(${prodId})">+</button>
                 </div>
             </div>
-            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prodId}, '${nombre.replace(/'/g, "\\'")}', ${precio}, ${stock})" ${stock === 0 ? 'disabled style="background:#999"' : ''}>
+            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prodId}, '${nombre.replace(/'/g, "\\'")}', ${precio}, ${stock}, '${categoria.replace(/'/g, "\\'")}')" ${stock === 0 ? 'disabled style="background:#999"' : ''}>
                 Agregar
             </button>
         </div>
@@ -350,7 +392,7 @@ function displayProducts(products) {
 }
 
 /* ============================================
-   AUMENTAR CANTIDAD
+   AUMENTAR / DISMINUIR CANTIDAD
    ============================================ */
 function increaseQty(productId) {
     if (!productQuantities[productId]) productQuantities[productId] = 1;
@@ -360,9 +402,6 @@ function increaseQty(productId) {
     if (qtyDisplay) qtyDisplay.textContent = productQuantities[productId];
 }
 
-/* ============================================
-   DISMINUIR CANTIDAD
-   ============================================ */
 function decreaseQty(productId) {
     if (!productQuantities[productId]) productQuantities[productId] = 1;
 
@@ -376,10 +415,9 @@ function decreaseQty(productId) {
 /* ============================================
    AGREGAR AL CARRITO CON CANTIDAD
    ============================================ */
-function addToCartWithQty(productId, name, price, stock) {
+function addToCartWithQty(productId, name, price, stock, categoria) {
     const qty = productQuantities[productId] || 1;
 
-    // Validar stock disponible
     const existing = cart.find(item => item.name === name);
     const qtyEnCarrito = existing ? existing.qty : 0;
 
@@ -391,17 +429,43 @@ function addToCartWithQty(productId, name, price, stock) {
     if (existing) {
         existing.qty += qty;
     } else {
-        cart.push({ name, price, qty: qty });
+        cart.push({ name, price, qty: qty, categoria: categoria || 'General' });
     }
 
     updateCartCount();
+    saveCart();
     resetInactivityTimer();
 
     showToast(`${escapeHtml(name)} x${qty} agregado al carrito`);
 
+    // Mostrar sugerencias
+    mostrarSugerencias(categoria, name);
+
     productQuantities[productId] = 1;
     const qtyDisplay = document.getElementById(`qty-${productId}`);
     if (qtyDisplay) qtyDisplay.textContent = '1';
+}
+
+/* ============================================
+   SUGERENCIAS INTELIGENTES
+   ============================================ */
+function mostrarSugerencias(categoria, nombreActual) {
+    if (!allProductsCache || allProductsCache.length === 0) return;
+
+    const sugerencias = allProductsCache.filter(p =>
+        p.categoria === categoria &&
+        p.nombre !== nombreActual &&
+        p.estado === 'activo' &&
+        p.stock > 0 &&
+        !cart.find(c => c.name === p.nombre)
+    ).slice(0, 2);
+
+    if (sugerencias.length === 0) return;
+
+    const nombres = sugerencias.map(s => s.nombre).join(' y ');
+    setTimeout(() => {
+        showToast(`💡 ¿También necesitas ${escapeHtml(nombres)}?`);
+    }, 800);
 }
 
 /* ============================================
@@ -488,7 +552,6 @@ async function confirmPurchase() {
     showScreen('screen-confirmation');
 
     try {
-        // Guardar venta en Supabase
         const { error: ventaError } = await db
             .from('ventas')
             .insert([{
@@ -503,7 +566,6 @@ async function confirmPurchase() {
 
         if (ventaError) throw ventaError;
 
-        // Actualizar stock de productos
         for (const item of cart) {
             const { data: productoData, error: productoError } = await db
                 .from('productos')
@@ -525,6 +587,10 @@ async function confirmPurchase() {
                 console.log(`Stock actualizado: ${item.name} → ${nuevoStock}`);
             }
         }
+
+        // Notificar por WhatsApp al admin si está configurado
+        enviarNotificacionWhatsApp(saleNumber, total);
+
     } catch (error) {
         console.error('Error guardando venta:', error);
         showToast('⚠️ Error al guardar la venta. Acércate a caja.');
@@ -534,7 +600,80 @@ async function confirmPurchase() {
             confirmBtn.innerHTML = originalText;
         }
         isProcessingPurchase = false;
+        clearCartStorage();
     }
+}
+
+/* ============================================
+   WHATSAPP - NOTIFICACIÓN AL ADMIN
+   ============================================ */
+function enviarNotificacionWhatsApp(numeroVenta, total) {
+    if (!negocioConfig.whatsapp) return;
+
+    const mensaje = `🔔 *Nueva Venta en Quiosco*%0A%0A` +
+        `📋 N°: ${numeroVenta}%0A` +
+        `👤 Cliente: ${clientName || 'Walk-In'}%0A` +
+        `💰 Total: S/ ${total.toFixed(2)}%0A` +
+        `⏰ ${new Date().toLocaleString('es-PE')}%0A%0A` +
+        `Estado: PENDIENTE DE PAGO`;
+
+    // En un entorno real esto se haría desde backend.
+    // Por ahora, si el dispositivo lo permite, abrimos wa.me en background
+    const waLink = `https://wa.me/${limpiarNumeroWhatsApp(negocioConfig.whatsapp)}?text=${mensaje}`;
+
+    // Solo notificar si es un dispositivo que puede manejarlo (no ideal en quiosco público)
+    // Mejor: guardar en BD y que el admin tenga un botón para ver notificaciones
+    console.log('Notificación WhatsApp lista:', waLink);
+}
+
+function limpiarNumeroWhatsApp(numero) {
+    return numero.toString().replace(/\D/g, '');
+}
+
+/* ============================================
+   WHATSAPP - COMPARTIR COMPROBANTE
+   ============================================ */
+function compartirWhatsAppComprobante() {
+    if (!negocioConfig.whatsapp && !clientName) {
+        showToast('No hay número de WhatsApp configurado');
+        return;
+    }
+
+    const fecha = new Date().toLocaleDateString('es-PE');
+    let mensaje = `🧾 *Comprobante de Compra*%0A%0A` +
+        `🏪 ${escapeHtml(negocioConfig.nombre_negocio || 'Ferretería')}%0A` +
+        `📋 N°: ${currentSaleNumber}%0A` +
+        `📅 Fecha: ${fecha}%0A` +
+        `👤 Cliente: ${escapeHtml(clientName || 'Walk-In')}%0A%0A` +
+        `*Productos:*%0A`;
+
+    cart.forEach(item => {
+        mensaje += `• ${escapeHtml(item.name)} x${item.qty} = S/ ${(item.price * item.qty).toFixed(2)}%0A`;
+    });
+
+    mensaje += `%0A*TOTAL: S/ ${currentSaleTotal.toFixed(2)}*%0A%0A` +
+        `Presente este mensaje en caja para completar su compra.`;
+
+    const numeroDestino = prompt('Ingresa tu número de WhatsApp (ej: 51999123456):');
+    if (!numeroDestino) return;
+
+    const waLink = `https://wa.me/${limpiarNumeroWhatsApp(numeroDestino)}?text=${mensaje}`;
+    window.open(waLink, '_blank');
+}
+
+/* ============================================
+   WHATSAPP - LLAMAR VENDEDOR
+   ============================================ */
+function llamarVendedor() {
+    const numero = negocioConfig.whatsapp || negocioConfig.telefono;
+    if (!numero) {
+        showToast('⚠️ Número de contacto no configurado. Acércate a caja.');
+        return;
+    }
+
+    const mensaje = `Hola, soy *${escapeHtml(clientName || 'un cliente')}* y necesito ayuda en el quiosco virtual.`;
+    const waLink = `https://wa.me/${limpiarNumeroWhatsApp(numero)}?text=${encodeURIComponent(mensaje)}`;
+    window.open(waLink, '_blank');
 }
 
 /* ============================================
@@ -546,14 +685,15 @@ function printTicket() {
     const fecha = new Date().toLocaleDateString('es-PE');
     const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     const productsList = cart.length > 0 ? cart : [];
+    const negocioNombre = escapeHtml(negocioConfig.nombre_negocio || 'FERRETERÍA EL CONSTRUCTOR');
 
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>Comprobante ${currentSaleNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Courier New',monospace;padding:20px;max-width:300px;margin:0 auto;background:white;color:#000}.header{text-align:center;border-bottom:2px dashed #000;padding-bottom:15px;margin-bottom:15px}.header h1{font-size:18px;margin-bottom:5px}.header h2{font-size:14px;font-weight:normal}.header p{font-size:12px;margin-top:5px}.info{font-size:12px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.info p{margin-bottom:3px}.products{font-size:12px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.product-row{display:flex;justify-content:space-between;margin-bottom:5px}.product-name{flex:1}.product-qty{width:40px;text-align:center}.product-price{width:70px;text-align:right}.totals{font-size:14px;margin-bottom:15px}.total-row{display:flex;justify-content:space-between;margin-bottom:5px}.total-final{font-size:18px;font-weight:bold;border-top:2px solid #000;padding-top:10px;margin-top:10px}.footer{text-align:center;font-size:11px;border-top:2px dashed #000;padding-top:15px}.footer p{margin-bottom:5px}@media print{body{padding:10px}}</style></head><body><div class="header"><h1>FERRETERÍA EL CONSTRUCTOR</h1><h2>Tu socio en construcción</h2><p>RUC: 20100100100</p><p>Av. Principal 123</p><p>Tel: (01) 234-5678</p></div><div class="info"><p><strong>COMPROBANTE DE COMPRA</strong></p><p>N°: ${currentSaleNumber}</p><p>Fecha: ${fecha}</p><p>Hora: ${hora}</p><p>Cliente: ${escapeHtml(clientName || 'Walk-In')}</p><p>Estado: PENDIENTE DE PAGO</p></div><div class="products"><div class="product-row" style="font-weight:bold;border-bottom:1px solid #000;padding-bottom:5px;margin-bottom:5px"><span class="product-name">Producto</span><span class="product-qty">Cant</span><span class="product-price">Total</span></div>${productsList.map(item => `<div class="product-row"><span class="product-name">${escapeHtml(item.name)}</span><span class="product-qty">${item.qty}</span><span class="product-price">S/ ${(item.price * item.qty).toFixed(2)}</span></div>`).join('')}</div><div class="totals"><div class="total-row"><span>Sub Total:</span><span>S/ ${(currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row"><span>IGV (18%):</span><span>S/ ${(currentSaleTotal - currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row total-final"><span>TOTAL:</span><span>S/ ${currentSaleTotal.toFixed(2)}</span></div></div><div class="footer"><p>Presente este comprobante en caja</p><p>para completar su compra</p><p style="margin-top:10px">¡Gracias por su compra!</p></div><script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},500);},500)}<\/script></body></html>`);
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Comprobante ${currentSaleNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Courier New',monospace;padding:20px;max-width:300px;margin:0 auto;background:white;color:#000}.header{text-align:center;border-bottom:2px dashed #000;padding-bottom:15px;margin-bottom:15px}.header h1{font-size:16px;margin-bottom:5px}.header h2{font-size:12px;font-weight:normal}.header p{font-size:11px;margin-top:5px}.info{font-size:11px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.info p{margin-bottom:3px}.products{font-size:11px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.product-row{display:flex;justify-content:space-between;margin-bottom:5px}.product-name{flex:1}.product-qty{width:40px;text-align:center}.product-price{width:70px;text-align:right}.totals{font-size:13px;margin-bottom:15px}.total-row{display:flex;justify-content:space-between;margin-bottom:5px}.total-final{font-size:16px;font-weight:bold;border-top:2px solid #000;padding-top:10px;margin-top:10px}.footer{text-align:center;font-size:10px;border-top:2px dashed #000;padding-top:15px}.footer p{margin-bottom:5px}@media print{body{padding:10px}}</style></head><body><div class="header"><h1>${negocioNombre}</h1><p>${escapeHtml(negocioConfig.direccion || 'Av. Principal 123')}</p><p>Tel: ${escapeHtml(negocioConfig.telefono || '(01) 234-5678')}</p></div><div class="info"><p><strong>COMPROBANTE DE COMPRA</strong></p><p>N°: ${currentSaleNumber}</p><p>Fecha: ${fecha}</p><p>Hora: ${hora}</p><p>Cliente: ${escapeHtml(clientName || 'Walk-In')}</p><p>Estado: PENDIENTE DE PAGO</p></div><div class="products"><div class="product-row" style="font-weight:bold;border-bottom:1px solid #000;padding-bottom:5px;margin-bottom:5px"><span class="product-name">Producto</span><span class="product-qty">Cant</span><span class="product-price">Total</span></div>${productsList.map(item => `<div class="product-row"><span class="product-name">${escapeHtml(item.name)}</span><span class="product-qty">${item.qty}</span><span class="product-price">S/ ${(item.price * item.qty).toFixed(2)}</span></div>`).join('')}</div><div class="totals"><div class="total-row"><span>Sub Total:</span><span>S/ ${(currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row"><span>IGV (18%):</span><span>S/ ${(currentSaleTotal - currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row total-final"><span>TOTAL:</span><span>S/ ${currentSaleTotal.toFixed(2)}</span></div></div><div class="footer"><p>Presente este comprobante en caja</p><p>para completar su compra</p><p style="margin-top:10px">¡Gracias por su compra!</p></div><script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},500);},500)}</script></body></html>`);
     printWindow.document.close();
 }
 
 /* ============================================
-   ABRIR MODAL
+   ABRIR / CERRAR MODAL
    ============================================ */
 function openModal(module) {
     currentModule = module;
@@ -581,9 +721,6 @@ function openModal(module) {
     if (modalTitle) modalTitle.textContent = titles[module] || 'Asistente IA';
 }
 
-/* ============================================
-   CERRAR MODAL
-   ============================================ */
 function closeModal() {
     const modal = document.getElementById('modal');
     if (modal) modal.classList.remove('active');
@@ -594,45 +731,30 @@ function closeModal() {
 }
 
 /* ============================================
-   ACTIVAR/DESACTIVAR VOZ
+   VOZ
    ============================================ */
 function toggleVoice() {
     if (!recognition) {
         alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
         return;
     }
-
-    if (isListening) {
-        stopListening();
-    } else {
-        startListening();
-    }
+    if (isListening) stopListening(); else startListening();
 }
 
-/* ============================================
-   INICIAR ESCUCHA
-   ============================================ */
 function startListening() {
     if (recognition) recognition.start();
     isListening = true;
-
     const voiceBtn = document.getElementById('voiceBtn');
     if (voiceBtn) voiceBtn.classList.add('listening');
-
     const userInput = document.getElementById('userInput');
     if (userInput) userInput.placeholder = 'Escuchando...';
 }
 
-/* ============================================
-   DETENER ESCUCHA
-   ============================================ */
 function stopListening() {
     if (recognition) recognition.stop();
     isListening = false;
-
     const voiceBtn = document.getElementById('voiceBtn');
     if (voiceBtn) voiceBtn.classList.remove('listening');
-
     const userInput = document.getElementById('userInput');
     if (userInput) userInput.placeholder = 'Escribe o usa el micrófono...';
 }
@@ -658,7 +780,6 @@ async function sendQuestion() {
     if (sendBtn) sendBtn.disabled = true;
 
     try {
-        // Obtener contexto de productos disponibles
         const { data: productos, error: productosError } = await db
             .from('productos')
             .select('id, nombre, categoria, precio, stock, unidad, imagen_url')
@@ -671,7 +792,6 @@ async function sendQuestion() {
             ).join('\n');
         }
 
-        // Llamar a la Edge Function de IA
         const response = await fetch('https://tpdstpnvsyqcvsfminip.supabase.co/functions/v1/asesor-ia', {
             method: 'POST',
             headers: {
@@ -693,12 +813,10 @@ async function sendQuestion() {
         currentResponse = data.respuesta;
         currentAudio = data.audio;
 
-        // Mostrar respuesta de texto
         if (responseContent) {
             responseContent.innerHTML = escapeHtml(currentResponse).replace(/\n/g, '<br>');
         }
 
-        // Búsqueda inteligente: extraer palabras clave
         const query = question.toLowerCase();
         const palabras = query.split(/\s+/).filter(p => p.length > 2);
 
@@ -745,7 +863,7 @@ async function sendQuestion() {
                                 <button class="qty-btn" onclick="vibrate(50); increaseQty(${prod.id})">+</button>
                             </div>
                         </div>
-                        <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prod.id}, '${escapeHtml(prod.nombre).replace(/'/g, "\\'")}', ${prod.precio}, ${prod.stock})" ${prod.stock === 0 ? 'disabled' : ''}>
+                        <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prod.id}, '${escapeHtml(prod.nombre).replace(/'/g, "\\'")}', ${prod.precio}, ${prod.stock}, '${escapeHtml(prod.categoria || 'General').replace(/'/g, "\\'")}')" ${prod.stock === 0 ? 'disabled' : ''}>
                             Agregar
                         </button>
                     </div>
@@ -754,10 +872,7 @@ async function sendQuestion() {
                 setTimeout(() => {
                     const chatContainer = document.querySelector('.chat-container');
                     if (chatContainer) {
-                        chatContainer.scrollTo({
-                            top: chatContainer.scrollHeight,
-                            behavior: 'smooth'
-                        });
+                        chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
                     }
                 }, 600);
 
@@ -768,9 +883,7 @@ async function sendQuestion() {
 
         if (responseActions) responseActions.style.display = 'flex';
 
-        if (currentAudio) {
-            playElevenLabsAudio(currentAudio);
-        }
+        if (currentAudio) playElevenLabsAudio(currentAudio);
 
     } catch (error) {
         console.error('Error:', error);
@@ -783,13 +896,11 @@ async function sendQuestion() {
 }
 
 /* ============================================
-   REPRODUCIR AUDIO DE ELEVENLABS
+   AUDIO / VOZ
    ============================================ */
 function playElevenLabsAudio(audioBase64) {
     if (!audioBase64) return;
-
     const audio = new Audio(audioBase64);
-
     const speakingIndicator = document.getElementById('speakingIndicator');
     if (speakingIndicator) speakingIndicator.classList.add('active');
 
@@ -803,19 +914,11 @@ function playElevenLabsAudio(audioBase64) {
     });
 }
 
-/* ============================================
-   HABLAR RESPUESTA
-   ============================================ */
 function speakResponse() {
     if (!currentResponse) return;
-
-    if (currentAudio) {
-        playElevenLabsAudio(currentAudio);
-        return;
-    }
+    if (currentAudio) { playElevenLabsAudio(currentAudio); return; }
 
     window.speechSynthesis.cancel();
-
     let cleanText = currentResponse
         .replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').replace(/_/g, '')
         .replace(/#{1,6}\s/g, '').replace(/`/g, '').replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
@@ -828,12 +931,10 @@ function speakResponse() {
         const speakingIndicator = document.getElementById('speakingIndicator');
         if (speakingIndicator) speakingIndicator.classList.add('active');
     };
-
     utterance.onend = () => {
         const speakingIndicator = document.getElementById('speakingIndicator');
         if (speakingIndicator) speakingIndicator.classList.remove('active');
     };
-
     utterance.onerror = () => {
         const speakingIndicator = document.getElementById('speakingIndicator');
         if (speakingIndicator) speakingIndicator.classList.remove('active');
@@ -850,8 +951,7 @@ function printQuote() {
 
     const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
     const numeroCotizacion = 'COT-' + Date.now().toString().slice(-6);
-
-    const negocioNombre = document.querySelector('.kiosk-title')?.textContent?.replace('BIENVENIDO A LA\n', '') || 'Ferretería El Constructor';
+    const negocioNombre = escapeHtml(negocioConfig.nombre_negocio || 'Ferretería El Constructor');
 
     const cartItems = cart.map(item => ({
         name: item.name,
@@ -864,12 +964,7 @@ function printQuote() {
 
     const printFrame = document.createElement('iframe');
     printFrame.id = 'quotePrintFrame';
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
+    printFrame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
     document.body.appendChild(printFrame);
 
     printFrame.contentDocument.write(`
@@ -906,7 +1001,7 @@ function printQuote() {
             <div class="header">
                 <div>
                     <div class="logo">FC</div>
-                    <div class="company-name">${escapeHtml(negocioNombre)}</div>
+                    <div class="company-name">${negocioNombre}</div>
                     <div class="tagline">Tu socio en construcción</div>
                 </div>
                 <div class="quote-info">
@@ -914,23 +1009,16 @@ function printQuote() {
                     <div class="date">Fecha: ${fecha}</div>
                 </div>
             </div>
-
             <div class="client-info">
                 <div class="client-label">Cliente</div>
                 <div class="client-name">${escapeHtml(clientName || 'Cliente General')}</div>
             </div>
-
             ${cartItems.length > 0 ? `
             <div class="products-table">
                 <div class="products-title">📋 Productos Cotizados</div>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th class="text-right">Cantidad</th>
-                            <th class="text-right">Precio Unit.</th>
-                            <th class="text-right">Subtotal</th>
-                        </tr>
+                        <tr><th>Producto</th><th class="text-right">Cantidad</th><th class="text-right">Precio Unit.</th><th class="text-right">Subtotal</th></tr>
                     </thead>
                     <tbody>
                         ${cartItems.map(item => `
@@ -949,13 +1037,11 @@ function printQuote() {
                 </table>
             </div>
             ` : '<div style="margin: 20px 0; padding: 15px; background: #fff5f5; border-left: 4px solid #fc8181; border-radius: 5px; color: #c53030;">No hay productos agregados al carrito</div>'}
-
             <div class="footer">
                 <div>Gracias por preferirnos</div>
-                <div class="phone">📞 (01) 234-5678</div>
+                <div class="phone">📞 ${escapeHtml(negocioConfig.telefono || '(01) 234-5678')}</div>
                 <div style="margin-top: 10px; font-size: 12px;">Esta cotización tiene una validez de 7 días</div>
             </div>
-
             <script>
                 window.onload = function() {
                     setTimeout(function() {
@@ -974,18 +1060,16 @@ function printQuote() {
 }
 
 /* ============================================
-   MOSTRAR NOTIFICACIÓN TOAST
+   TOAST
    ============================================ */
 function showToast(message) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
-
     if (!toast || !toastMessage) return;
 
     toastMessage.textContent = message;
     toast.classList.remove('hide');
     toast.classList.add('show');
-
     vibrate(100);
 
     setTimeout(() => {
@@ -1028,6 +1112,8 @@ async function cargarConfigDesdeQuiosco() {
         }
 
         if (data) {
+            negocioConfig = data;
+
             if (data.logo_url) {
                 const logos = document.querySelectorAll('.logo-3d img');
                 logos.forEach(img => {
@@ -1075,13 +1161,11 @@ function closeImageZoom() {
     }
 }
 
-// Cerrar modal al hacer click fuera
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('imageZoomModal');
     if (modal && e.target === modal) closeImageZoom();
 });
 
-// Cerrar con tecla ESC
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeImageZoom();
 });

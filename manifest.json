@@ -1,0 +1,18 @@
+{
+  "name": "Vendedor IA - Quiosco Inteligente",
+  "short_name": "VendedorIA",
+  "description": "Quiosco inteligente con asistente IA para tiendas físicas",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#2c3e50",
+  "theme_color": "#4299e1",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2964/2964277.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

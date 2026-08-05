@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administrativo - Ferretería El Constructor</title>
+    <title>Panel Administrativo - Vendedor IA</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="admin.css">
 </head>
@@ -17,7 +17,7 @@
                     <img src="https://cdn-icons-png.flaticon.com/512/2964/2964277.png" alt="Logo">
                 </div>
                 <h1 class="kiosk-title">PANEL ADMINISTRATIVO</h1>
-                <p class="subtitle">Ferretería El Constructor</p>
+                <p class="subtitle">Vendedor IA - Quiosco Inteligente</p>
             </div>
             <div class="login-form">
                 <label for="adminPassword">CONTRASEÑA</label>
@@ -61,7 +61,7 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon"></div>
+                    <div class="stat-icon">📊</div>
                     <div class="stat-info">
                         <div class="stat-label">N° de Ventas</div>
                         <div class="stat-value" id="numVentas">0</div>
@@ -75,7 +75,7 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon"></div>
+                    <div class="stat-icon">⏳</div>
                     <div class="stat-info">
                         <div class="stat-label">Pendientes</div>
                         <div class="stat-value" id="ventasPendientes">0</div>
@@ -98,42 +98,82 @@
             </div>
 
             <!-- Gestión de Productos -->
-<div class="section products-section">
-    <h3 class="section-title">📦 Gestión de Productos</h3>
-    
-    <div class="search-products">
-        <input type="text" id="searchProductAdmin" placeholder="Buscar producto..." oninput="filtrarProductosAdmin()">
-    </div>
-    
-    <div class="products-grid" id="productsGrid">
-        <div class="empty-state">Cargando productos...</div>
-    </div>
-</div>
+            <div class="section products-section">
+                <h3 class="section-title">📦 Gestión de Productos</h3>
+
+                <div class="products-toolbar">
+                    <div class="search-products">
+                        <input type="text" id="searchProductAdmin" placeholder="Buscar producto..." oninput="filtrarProductosAdmin()">
+                    </div>
+                    <select id="filterEstado" class="filter-select" onchange="filtrarProductosAdmin()">
+                        <option value="todos">Todos</option>
+                        <option value="activo">Activos</option>
+                        <option value="inactivo">Inactivos</option>
+                    </select>
+                    <button class="btn-metal success btn-new-product" onclick="openProductModal()">➕ Nuevo Producto</button>
+                </div>
+
+                <div class="products-counter" id="productsCounter"></div>
+
+                <div class="products-grid" id="productsGrid">
+                    <div class="empty-state">Cargando productos...</div>
+                </div>
+            </div>
 
             <!-- Configuración del Negocio -->
-<div class="section config-section">
-    <h3 class="section-title">🏪 Configuración del Negocio</h3>
-    <div class="config-form">
-        <div class="form-group">
-            <label>Nombre del Negocio</label>
-            <input type="text" id="configNombre" placeholder="Ej: Ferretería El Constructor">
-        </div>
-        
-        <div class="form-group">
-            <!-- <label>URL del Logo</label>  -->
-            <div class="logo-upload-section">
-            <input type="text" id="configLogo" placeholder="https://ejemplo.com/logo.png">
-            <input type="file" id="logoFileInput" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
-            <button class="btn-small" onclick="document.getElementById('logoFileInput').click()">📁 Subir Logo</button>
+            <div class="section config-section">
+                <h3 class="section-title">🏪 Configuración del Negocio</h3>
+
+                <div id="planInfo"></div>
+
+                <div class="config-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre del Negocio *</label>
+                            <input type="text" id="configNombre" placeholder="Ej: Ferretería El Constructor">
+                        </div>
+                        <div class="form-group">
+                            <label>Plan SaaS</label>
+                            <select id="configPlan">
+                                <option value="basico">Básico (50 productos)</option>
+                                <option value="profesional">Profesional (200 productos)</option>
+                                <option value="empresarial">Empresarial (Ilimitado)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>WhatsApp del Negocio</label>
+                            <input type="text" id="configWhatsapp" placeholder="Ej: 51999123456">
+                            <small>Para notificaciones y botón "Llamar vendedor"</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono / Contacto</label>
+                            <input type="text" id="configTelefono" placeholder="Ej: (01) 234-5678">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="configDireccion" placeholder="Ej: Av. Principal 123, Lima">
+                    </div>
+
+                    <div class="form-group">
+                        <label>URL del Logo</label>
+                        <div class="logo-upload-section">
+                            <input type="text" id="configLogo" placeholder="https://ejemplo.com/logo.png">
+                            <input type="file" id="logoFileInput" accept="image/*" style="display: none;" onchange="handleLogoUpload(event)">
+                            <button class="btn-small" onclick="document.getElementById('logoFileInput').click()">📁 Subir Logo</button>
+                        </div>
+                        <div class="logo-preview" id="logoPreview">
+                            <img src="" alt="Logo actual" id="logoPreviewImg" style="display:none;">
+                        </div>
+                    </div>
+
+                    <button class="btn-metal primary" onclick="guardarConfig()">💾 Guardar Configuración</button>
+                </div>
             </div>
-            <div class="logo-preview" id="logoPreview">
-                <img src="" alt="Logo actual" id="logoPreviewImg">
-            </div>
-        </div>
-        
-        <button class="btn-metal primary" onclick="guardarConfig()">💾 Guardar Configuración</button>
-    </div>
-</div>
 
             <!-- Productos más vendidos -->
             <div class="section">
@@ -145,7 +185,61 @@
         </div>
     </div>
 
-    <!-- Modal de confirmación -->
+    <!-- Modal de Producto (Crear/Editar) -->
+    <div id="productModal" class="modal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h3 class="modal-title" id="productModalTitle">Nuevo Producto</h3>
+                <button class="btn-close" onclick="closeProductModal()">✕</button>
+            </div>
+            <form id="productForm" onsubmit="event.preventDefault(); guardarProducto();">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" id="prodNombre" required placeholder="Ej: Cemento Andino">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <input type="text" id="prodCategoria" placeholder="Ej: Construcción">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio (S/) *</label>
+                        <input type="number" id="prodPrecio" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock *</label>
+                        <input type="number" id="prodStock" min="0" required placeholder="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Unidad</label>
+                        <input type="text" id="prodUnidad" value="unid." placeholder="unid. / kg / bolsa">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="prodEstado">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>URL de Imagen</label>
+                    <input type="url" id="prodImagen" placeholder="https://ejemplo.com/imagen.jpg">
+                    <small>O sube una imagen desde el panel de productos</small>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-metal secondary" onclick="closeProductModal()">Cancelar</button>
+                    <button type="submit" class="btn-metal success">💾 Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación de pago -->
     <div id="confirmModal" class="modal">
         <div class="modal-panel small">
             <h3 class="modal-title">Confirmar Pago</h3>

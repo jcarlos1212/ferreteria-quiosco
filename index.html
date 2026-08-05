@@ -5,11 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Ferretería El Constructor - Quiosco Inteligente</title>
-    <!-- Favicon inline para evitar error 404 -->
+    <meta name="theme-color" content="#4299e1">
+    <title>Vendedor IA - Quiosco Inteligente</title>
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏗️</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Botón flotante de ayuda */
+        .help-float-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #48bb78 0%, #2f855a 100%);
+            color: white;
+            border: 3px solid #1a202c;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+            animation: pulse-green 2s infinite;
+        }
+        .help-float-btn:active { transform: scale(0.9); }
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 5px 20px rgba(72,187,120,0.4); }
+            50% { box-shadow: 0 5px 30px rgba(72,187,120,0.7); }
+        }
+        /* Botón WhatsApp en confirmación */
+        .btn-whatsapp {
+            background: linear-gradient(145deg, #25D366 0%, #128C7E 100%) !important;
+            margin-top: 10px;
+        }
+        /* Ocultar en pantalla de bienvenida */
+        body:not(.session-active) .help-float-btn {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
@@ -127,6 +166,7 @@
                 <div id="confirmationDetails"></div>
                 <p class="confirmation-note">Acércate a caja con este comprobante para completar tu compra</p>
                 <button class="btn-metal success" onclick="vibrate(100); printTicket()">🖨️ Imprimir Comprobante</button>
+                <button class="btn-metal btn-whatsapp" onclick="vibrate(100); compartirWhatsAppComprobante()">📱 Enviar a mi WhatsApp</button>
                 <button class="btn-metal" onclick="vibrate(100); resetToWelcome()" style="margin-top: 10px;">Volver al inicio</button>
             </div>
         </div>
@@ -166,7 +206,6 @@
             </div>
             <div id="response" class="response" style="display: none;">
                 <div id="responseContent"></div>
-                <!-- Contenedor de productos visuales -->
                 <div id="responseProducts" class="response-products" style="display: none;"></div>
                 <div class="response-actions" id="responseActions" style="display: none;">
                     <button class="btn-action" onclick="vibrate(100); speakResponse()">🔊 Escuchar</button>
@@ -186,6 +225,10 @@
         <div class="toast-message" id="toastMessage"></div>
     </div>
 
+    <!-- Botón flotante de ayuda -->
+    <button class="help-float-btn" onclick="vibrate(100); llamarVendedor()" title="Necesito ayuda">💬</button>
+
+    <!-- Botón Admin -->
     <button id="adminAccessBtn" class="admin-secret-btn" onclick="window.location.href='admin.html'" title="Acceso Administrador">⚙️</button>
 
     <!-- Toggle Modo Oscuro/Claro -->
@@ -200,7 +243,6 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="script.js"></script>
 </body>
 </html>
