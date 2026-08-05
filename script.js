@@ -21,6 +21,7 @@ let cart = [];
 let currentSaleNumber = '';
 let currentSaleTotal = 0;
 let productQuantities = {};
+let modalQuantities = {};
 let allProductsCache = [];
 let negocioConfig = {};
 
@@ -412,6 +413,55 @@ function decreaseQty(productId) {
     }
 }
 
+
+/* ============================================
+   CANTIDADES PARA MODAL (COTIZACIÓN)
+   ============================================ */
+function increaseModalQty(safeId) {
+    if (!modalQuantities[safeId]) modalQuantities[safeId] = 1;
+    modalQuantities[safeId]++;
+    const qtyDisplay = document.getElementById(`qty-${safeId}`);
+    if (qtyDisplay) qtyDisplay.textContent = modalQuantities[safeId];
+}
+
+function decreaseModalQty(safeId) {
+    if (!modalQuantities[safeId]) modalQuantities[safeId] = 1;
+    if (modalQuantities[safeId] > 1) {
+        modalQuantities[safeId]--;
+        const qtyDisplay = document.getElementById(`qty-${safeId}`);
+        if (qtyDisplay) qtyDisplay.textContent = modalQuantities[safeId];
+    }
+}
+
+function addToCartModal(safeId, productId, name, price, stock, categoria) {
+    const qty = modalQuantities[safeId] || 1;
+
+    const existing = cart.find(item => item.name === name);
+    const qtyEnCarrito = existing ? existing.qty : 0;
+
+    if (stock !== undefined && qty + qtyEnCarrito > stock) {
+        showToast(`❌ Stock insuficiente. Solo hay ${stock} disponible(s).`);
+        return;
+    }
+
+    if (existing) {
+        existing.qty += qty;
+    } else {
+        cart.push({ name, price, qty: qty, categoria: categoria || 'General' });
+    }
+
+    updateCartCount();
+    saveCart();
+    resetInactivityTimer();
+
+    showToast(`${escapeHtml(name)} x${qty} agregado al carrito`);
+    mostrarSugerencias(categoria, name);
+
+    modalQuantities[safeId] = 1;
+    const qtyDisplay = document.getElementById(`qty-${safeId}`);
+    if (qtyDisplay) qtyDisplay.textContent = '1';
+}
+
 /* ============================================
    AGREGAR AL CARRITO CON CANTIDAD
    ============================================ */
@@ -634,31 +684,59 @@ function limpiarNumeroWhatsApp(numero) {
    WHATSAPP - COMPARTIR COMPROBANTE
    ============================================ */
 function compartirWhatsAppComprobante() {
-    if (!negocioConfig.whatsapp && !clientName) {
-        showToast('No hay número de WhatsApp configurado');
+    if (!currentSaleNumber) {
+        showToast('No hay comprobante para compartir');
         return;
     }
 
     const fecha = new Date().toLocaleDateString('es-PE');
-    let mensaje = `🧾 *Comprobante de Compra*%0A%0A` +
-        `🏪 ${escapeHtml(negocioConfig.nombre_negocio || 'Ferretería')}%0A` +
-        `📋 N°: ${currentSaleNumber}%0A` +
-        `📅 Fecha: ${fecha}%0A` +
-        `👤 Cliente: ${escapeHtml(clientName || 'Walk-In')}%0A%0A` +
-        `*Productos:*%0A`;
+    let mensaje = `🧾 *Comprobante de Compra*` + '
+
+' +
+        `🏪 ${negocioConfig.nombre_negocio || 'Ferretería'}` + '
+' +
+        `📋 N°: ${currentSaleNumber}` + '
+' +
+        `📅 Fecha: ${fecha}` + '
+' +
+        `👤 Cliente: ${clientName || 'Walk-In'}` + '
+
+' +
+        `*Productos:*` + '
+';
 
     cart.forEach(item => {
-        mensaje += `• ${escapeHtml(item.name)} x${item.qty} = S/ ${(item.price * item.qty).toFixed(2)}%0A`;
+        mensaje += `• ${item.name} x${item.qty} = S/ ${(item.price * item.qty).toFixed(2)}` + '
+';
     });
 
-    mensaje += `%0A*TOTAL: S/ ${currentSaleTotal.toFixed(2)}*%0A%0A` +
+    mensaje += '
+' + `*TOTAL: S/ ${currentSaleTotal.toFixed(2)}*` + '
+
+' +
         `Presente este mensaje en caja para completar su compra.`;
 
     const numeroDestino = prompt('Ingresa tu número de WhatsApp (ej: 51999123456):');
     if (!numeroDestino) return;
 
-    const waLink = `https://wa.me/${limpiarNumeroWhatsApp(numeroDestino)}?text=${mensaje}`;
-    window.open(waLink, '_blank');
+    const numeroLimpio = limpiarNumeroWhatsApp(numeroDestino);
+    if (numeroLimpio.length < 9) {
+        showToast('❌ Número inválido. Ingresa al menos 9 dígitos.');
+        return;
+    }
+
+    const waLink = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
+
+    // Intentar abrir WhatsApp
+    const newWindow = window.open(waLink, '_blank');
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        // Fallback: copiar al portapapeles
+        navigator.clipboard.writeText(mensaje).then(() => {
+            showToast('📋 Mensaje copiado. Abre WhatsApp y pégalo.');
+        }).catch(() => {
+            showToast('⚠️ Abre WhatsApp manualmente y envía el comprobante');
+        });
+    }
 }
 
 /* ============================================
@@ -671,9 +749,14 @@ function llamarVendedor() {
         return;
     }
 
-    const mensaje = `Hola, soy *${escapeHtml(clientName || 'un cliente')}* y necesito ayuda en el quiosco virtual.`;
-    const waLink = `https://wa.me/${limpiarNumeroWhatsApp(numero)}?text=${encodeURIComponent(mensaje)}`;
-    window.open(waLink, '_blank');
+    const numeroLimpio = limpiarNumeroWhatsApp(numero);
+    const mensaje = `Hola, soy *${clientName || 'un cliente'}* y necesito ayuda en el quiosco virtual.`;
+    const waLink = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
+
+    const newWindow = window.open(waLink, '_blank');
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        showToast('📋 Abriendo WhatsApp... Si no funciona, acércate a caja.');
+    }
 }
 
 /* ============================================
@@ -845,7 +928,13 @@ async function sendQuestion() {
             if (productosFiltrados.length > 0) {
                 responseProducts.style.display = 'block';
 
-                responseProducts.innerHTML = productosFiltrados.map((prod) => `
+                // Resetear cantidades del modal
+                modalQuantities = {};
+
+                responseProducts.innerHTML = productosFiltrados.map((prod) => {
+                    const safeId = 'modal_' + prod.id;
+                    modalQuantities[safeId] = 1;
+                    return `
                     <div class="product-item">
                         <div class="product-image-small">
                             ${prod.imagen_url ?
@@ -858,16 +947,16 @@ async function sendQuestion() {
                             <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
                             <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
                             <div class="quantity-control">
-                                <button class="qty-btn" onclick="vibrate(50); decreaseQty(${prod.id})">-</button>
-                                <span class="qty-display" id="qty-${prod.id}">1</span>
-                                <button class="qty-btn" onclick="vibrate(50); increaseQty(${prod.id})">+</button>
+                                <button class="qty-btn" onclick="vibrate(50); decreaseModalQty('${safeId}')">-</button>
+                                <span class="qty-display" id="qty-${safeId}">1</span>
+                                <button class="qty-btn" onclick="vibrate(50); increaseModalQty('${safeId}')">+</button>
                             </div>
                         </div>
-                        <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prod.id}, '${escapeHtml(prod.nombre).replace(/'/g, "\\'")}', ${prod.precio}, ${prod.stock}, '${escapeHtml(prod.categoria || 'General').replace(/'/g, "\\'")}')" ${prod.stock === 0 ? 'disabled' : ''}>
+                        <button class="btn-add" onclick="vibrate(100); addToCartModal('${safeId}', ${prod.id}, '${escapeHtml(prod.nombre).replace(/'/g, "\\'")}', ${prod.precio}, ${prod.stock}, '${escapeHtml(prod.categoria || 'General').replace(/'/g, "\\'")}')" ${prod.stock === 0 ? 'disabled' : ''}>
                             Agregar
                         </button>
                     </div>
-                `).join('');
+                `}).join('');
 
                 setTimeout(() => {
                     const chatContainer = document.querySelector('.chat-container');
