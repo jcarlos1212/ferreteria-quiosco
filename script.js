@@ -683,54 +683,41 @@ function limpiarNumeroWhatsApp(numero) {
 /* ============================================
    WHATSAPP - COMPARTIR COMPROBANTE
    ============================================ */
+
 function compartirWhatsAppComprobante() {
     if (!currentSaleNumber) {
         showToast('No hay comprobante para compartir');
         return;
     }
-
     const fecha = new Date().toLocaleDateString('es-PE');
-    let mensaje = `🧾 *Comprobante de Compra*` + '
-
-' +
-        `🏪 ${negocioConfig.nombre_negocio || 'Ferretería'}` + '
-' +
-        `📋 N°: ${currentSaleNumber}` + '
-' +
-        `📅 Fecha: ${fecha}` + '
-' +
-        `👤 Cliente: ${clientName || 'Walk-In'}` + '
-
-' +
-        `*Productos:*` + '
-';
-
+    
+    let mensaje = '🧾 *Comprobante de Compra*\n\n';
+    mensaje += `🏪 ${negocioConfig.nombre_negocio || 'Ferretería'}\n`;
+    mensaje += `📋 N°: ${currentSaleNumber}\n`;
+    mensaje += ` Fecha: ${fecha}\n`;
+    mensaje += `👤 Cliente: ${clientName || 'Walk-In'}\n\n`;
+    mensaje += '*Productos:*\n';
+    
     cart.forEach(item => {
-        mensaje += `• ${item.name} x${item.qty} = S/ ${(item.price * item.qty).toFixed(2)}` + '
-';
+        mensaje += `• ${item.name} x${item.qty} = S/ ${(item.price * item.qty).toFixed(2)}\n`;
     });
-
-    mensaje += '
-' + `*TOTAL: S/ ${currentSaleTotal.toFixed(2)}*` + '
-
-' +
-        `Presente este mensaje en caja para completar su compra.`;
-
+    
+    mensaje += `\n*TOTAL: S/ ${currentSaleTotal.toFixed(2)}*\n`;
+    mensaje += `Presente este mensaje en caja para completar su compra.`;
+    
     const numeroDestino = prompt('Ingresa tu número de WhatsApp (ej: 51999123456):');
     if (!numeroDestino) return;
-
+    
     const numeroLimpio = limpiarNumeroWhatsApp(numeroDestino);
     if (numeroLimpio.length < 9) {
         showToast('❌ Número inválido. Ingresa al menos 9 dígitos.');
         return;
     }
-
+    
     const waLink = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
-
-    // Intentar abrir WhatsApp
     const newWindow = window.open(waLink, '_blank');
+    
     if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-        // Fallback: copiar al portapapeles
         navigator.clipboard.writeText(mensaje).then(() => {
             showToast('📋 Mensaje copiado. Abre WhatsApp y pégalo.');
         }).catch(() => {
@@ -738,6 +725,7 @@ function compartirWhatsAppComprobante() {
         });
     }
 }
+
 
 /* ============================================
    WHATSAPP - LLAMAR VENDEDOR
