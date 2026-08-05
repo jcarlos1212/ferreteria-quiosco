@@ -6,6 +6,7 @@
     <title>Panel Administrativo - Vendedor IA</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="admin.css">
+<base target="_blank">
 </head>
 <body>
 
@@ -227,9 +228,16 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>URL de Imagen</label>
-                    <input type="url" id="prodImagen" placeholder="https://ejemplo.com/imagen.jpg">
-                    <small>O sube una imagen desde el panel de productos</small>
+                    <label>Imagen del Producto</label>
+                    <div class="logo-upload-section">
+                        <input type="text" id="prodImagen" placeholder="https://ejemplo.com/imagen.jpg">
+                        <input type="file" id="prodImageFile" accept="image/*" style="display: none;" onchange="handleProductImageUpload(event)">
+                        <button type="button" class="btn-small" onclick="document.getElementById('prodImageFile').click()">📁 Subir Imagen</button>
+                    </div>
+                    <div class="logo-preview" id="productImagePreview" style="margin-top:10px;">
+                        <img src="" alt="Vista previa" id="productPreviewImg" style="display:none; max-width:120px; max-height:120px;">
+                    </div>
+                    <small>Pega una URL o selecciona un archivo de tu computadora</small>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-metal secondary" onclick="closeProductModal()">Cancelar</button>
