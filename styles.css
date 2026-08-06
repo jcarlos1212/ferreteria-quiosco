@@ -89,10 +89,10 @@ body {
 }
 
 .logo-3d {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
     margin: 0 auto 20px;
-    background: transparent; /* ← CAMBIADO: era gradiente rosa */
+    background: transparent;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -112,20 +112,17 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: transparent; /* ← CAMBIADO: era gradiente blanco */
+    background: transparent;
     border-radius: 50%;
 }
 
 .logo-3d img {
-    width: 90%; /* ← AUMENTADO: para que el logo llene más */
-    height: 90%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     position: relative;
     z-index: 1;
     filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.3));
-    background: white; /* ← NUEVO: fondo blanco para logos */
-    border-radius: 50%;
-    padding: 5px;
 }
 
 .logo-3d.small {
@@ -135,8 +132,8 @@ body {
 }
 
 .logo-3d.small img {
-    width: 85%;
-    height: 85%;
+    width: 100%;
+    height: 100%;
 }
 .kiosk-title {
     color: #e2e8f0;
@@ -1071,7 +1068,6 @@ body.light-mode .response {
 
 /* ============================================
    PRODUCTOS EN MODAL DE COTIZACIÓN
-   (COPIADO DE COMPRAR - FUNCIONA PERFECTO)
    ============================================ */
 .response-products {
     margin-top: 20px;
@@ -1307,24 +1303,28 @@ body.light-mode .response {
    MENÚ PRINCIPAL - VERTICAL EN MÓVIL
    ============================================ */
 @media (max-width: 768px) {
-    /* Panel del quiosco - SIN MÁRGENES */
+    /* Panel del quiosco */
     .kiosk-panel {
         width: 100% !important;
         max-width: 100% !important;
-        padding: 10px !important;
+        padding: 15px !important;
         box-sizing: border-box !important;
     }
     
-    /* Logo más pequeño */
+    /* Logo más pequeño y proporcional */
     .logo-3d {
-        width: 80px !important;
-        height: 80px !important;
+        width: 55px !important;
+        height: 55px !important;
         margin: 0 auto 15px auto !important;
     }
     
-    /* Título centrado */
+    .logo-container {
+        margin-bottom: 15px !important;
+    }
+    
+    /* Título centrado y reducido */
     .kiosk-title {
-        font-size: 20px !important;
+        font-size: 18px !important;
         padding: 0 10px !important;
         text-align: center !important;
         word-wrap: break-word !important;
@@ -1634,5 +1634,3 @@ body.light-mode .response {
     font-size: 15px !important;
     min-height: 55px !important;
 }
-
-
