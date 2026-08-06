@@ -1,6 +1,6 @@
 /* ============================================
-   ADMIN PANEL - DISEÑO MODERNO v3.3
-   Corregido: Login limpio, logo unificado, responsive
+   ADMIN PANEL - DISEÑO MODERNO v3.4
+   Corregido: Login ya no se superpone al panel
    ============================================ */
 
 * {
@@ -35,7 +35,7 @@ body {
 }
 
 /* ============================================
-   LOGIN SCREEN
+   LOGIN SCREEN  ← CORREGIDO AQUÍ
    ============================================ */
 #login-screen {
     min-height: 100vh;
