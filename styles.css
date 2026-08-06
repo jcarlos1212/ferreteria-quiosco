@@ -1383,6 +1383,26 @@ body.light-mode .response {
         padding: 18px !important;
         font-size: 18px !important;
     }
+
+
+        /* Input de nombre en móvil - más compacto */
+    .input-section {
+        padding: 0 10px !important;
+    }
+    
+    .input-section input {
+        padding: 12px !important;
+        font-size: 16px !important;
+        min-height: 50px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .input-section label {
+        font-size: 14px !important;
+        margin-bottom: 10px !important;
+    }
+   
+   
     
     /* ============================================
        MODAL DE COTIZACIÓN - ANCHO COMPLETO
