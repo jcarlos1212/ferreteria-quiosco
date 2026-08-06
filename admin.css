@@ -1,6 +1,6 @@
 /* ============================================
-   ADMIN PANEL - DISEÑO MODERNO v3.4
-   Corregido: Login ya no se superpone al panel
+   ADMIN PANEL - DISEÑO MODERNO v3.5
+   FIX: Login oculto forzado con !important
    ============================================ */
 
 * {
@@ -35,17 +35,21 @@ body {
 }
 
 /* ============================================
-   LOGIN SCREEN  ← CORREGIDO AQUÍ
+   LOGIN SCREEN  ← FIX DEFINITIVO AQUÍ
    ============================================ */
-#login-screen {
-    min-height: 100vh;
-    padding: 20px;
+
+/* Ocultar login FORZOSAMENTE cuando no tiene .active */
+#login-screen:not(.active) {
+    display: none !important;
 }
 
+/* Solo mostrar como flex cuando SÍ tiene .active */
 #login-screen.active {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
 }
 
 #login-screen .kiosk-panel {
