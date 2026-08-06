@@ -1,6 +1,6 @@
 /* ============================================
-   ADMIN PANEL - DISEÑO MODERNO v3.2
-   Corregido: Login con .kiosk-panel 
+   ADMIN PANEL - DISEÑO MODERNO v3.3
+   Corregido: Login limpio, logo unificado, responsive
    ============================================ */
 
 * {
@@ -35,7 +35,7 @@ body {
 }
 
 /* ============================================
-   LOGIN SCREEN - CORREGIDO PARA .kiosk-panel
+   LOGIN SCREEN
    ============================================ */
 #login-screen {
     min-height: 100vh;
@@ -45,123 +45,120 @@ body {
     padding: 20px;
 }
 
-/* Logo PEQUEÑO en login - CORREGIDO */
 #login-screen .kiosk-panel {
-    background: white !important;
-    border-radius: 20px !important;
-    padding: 30px !important;
-    max-width: 400px !important;
-    width: 100% !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
-    border: none !important;
-    box-shadow: none !important;
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: none;
 }
 
 #login-screen .kiosk-panel::before,
 #login-screen .kiosk-panel::after {
-    display: none !important;
+    display: none;
 }
 
 #login-screen .logo-container {
-    margin-bottom: 20px !important;
+    margin-bottom: 20px;
 }
 
 #login-screen .logo-3d {
-    width: 70px !important;
-    height: 70px !important;
-    margin: 0 auto 15px auto !important;
-    background: white !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
-    border: 2px solid #e2e8f0 !important;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 15px auto;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e2e8f0;
 }
 
 #login-screen .logo-3d img {
-    width: 85% !important;
-    height: 85% !important;
-    object-fit: contain !important;
-    border-radius: 50% !important;
-    background: white !important;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
 }
 
 #login-screen .kiosk-title {
-    font-size: 20px !important;
-    color: #1e293b !important;
-    font-weight: 700 !important;
-    margin-bottom: 5px !important;
-    text-shadow: none !important;
-    text-align: center !important;
+    font-size: 20px;
+    color: #1e293b;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-shadow: none;
+    text-align: center;
 }
 
 #login-screen .subtitle {
-    color: #64748b !important;
-    font-size: 13px !important;
-    text-align: center !important;
+    color: #64748b;
+    font-size: 13px;
+    text-align: center;
 }
 
 #login-screen .login-form {
-    max-width: 100% !important;
-    margin: 0 !important;
+    max-width: 100%;
+    margin: 0;
 }
 
 #login-screen .login-form label {
-    color: #475569 !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    display: block !important;
-    margin-bottom: 8px !important;
-    text-align: left !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 #login-screen .login-form input {
-    width: 100% !important;
-    padding: 12px 15px !important;
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 10px !important;
-    font-size: 15px !important;
-    margin-bottom: 15px !important;
-    background: #f8fafc !important;
-    color: #1e293b !important;
-    transition: all 0.2s !important;
-    text-align: left !important;
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    margin-bottom: 15px;
+    background: #f8fafc;
+    color: #1e293b;
+    transition: all 0.2s;
+    text-align: left;
 }
 
 #login-screen .login-form input:focus {
-    outline: none !important;
-    border-color: #667eea !important;
-    background: white !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 #login-screen .error-message {
-    color: #ef4444 !important;
-    text-align: center !important;
-    margin: 10px 0 !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    min-height: 20px !important;
+    color: #ef4444;
+    text-align: center;
+    margin: 10px 0;
+    font-size: 13px;
+    font-weight: 500;
+    min-height: 20px;
 }
 
 #login-screen .btn-link {
-    background: none !important;
-    border: none !important;
-    color: #667eea !important;
-    cursor: pointer !important;
-    font-size: 13px !important;
-    margin-top: 15px !important;
-    display: block !important;
-    width: 100% !important;
-    text-align: center !important;
-    font-weight: 500 !important;
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 13px;
+    margin-top: 15px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-weight: 500;
 }
 
 #login-screen .btn-link:hover {
-    text-decoration: underline !important;
+    text-decoration: underline;
 }
 
 /* ============================================
@@ -173,7 +170,6 @@ body {
     padding-bottom: 20px;
 }
 
-/* Header superior */
 .admin-header {
     display: flex;
     justify-content: space-between;
@@ -192,53 +188,53 @@ body {
 }
 
 .admin-header .logo-3d {
-    width: 40px !important;
-    height: 40px !important;
-    margin: 0 !important;
-    background: white !important;
-    border-radius: 8px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-    border: 1px solid #e2e8f0 !important;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
 }
 
 .admin-header .logo-3d img {
-    width: 90% !important;
-    height: 90% !important;
-    object-fit: contain !important;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .admin-header .kiosk-title {
-    font-size: 15px !important;
-    color: #1e293b !important;
-    font-weight: 700 !important;
-    text-shadow: none !important;
-    letter-spacing: 0 !important;
+    font-size: 15px;
+    color: #1e293b;
+    font-weight: 700;
+    text-shadow: none;
+    letter-spacing: 0;
 }
 
 .btn-exit-metal {
-    background: #ef4444 !important;
-    color: white !important;
-    border: none !important;
-    padding: 8px 16px !important;
-    border-radius: 8px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    min-height: auto !important;
-    transition: all 0.2s !important;
-    box-shadow: none !important;
-    text-transform: none !important;
-    letter-spacing: 0 !important;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: auto;
+    transition: all 0.2s;
+    box-shadow: none;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 .btn-exit-metal:hover {
-    background: #dc2626 !important;
-    transform: translateY(-1px) !important;
+    background: #dc2626;
+    transform: translateY(-1px);
 }
 
 .btn-exit-metal.small {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
+    padding: 6px 12px;
+    font-size: 12px;
 }
 
 /* ============================================
@@ -1191,16 +1187,16 @@ body {
     
     /* Login compacto en móvil */
     #login-screen .kiosk-panel {
-        padding: 25px 20px !important;
+        padding: 25px 20px;
     }
     
     #login-screen .logo-3d {
-        width: 60px !important;
-        height: 60px !important;
+        width: 50px;
+        height: 50px;
     }
     
     #login-screen .kiosk-title {
-        font-size: 18px !important;
+        font-size: 18px;
     }
 }
 
@@ -1243,131 +1239,4 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
-}
-
-
-/* ============================================
-   FIX LOGIN - LOGO PEQUEÑO (AGREGAR AL FINAL)
-   ============================================ */
-
-#login-screen .logo-container {
-    margin-bottom: 15px !important;
-}
-
-#login-screen .logo-3d {
-    width: 60px !important;
-    height: 60px !important;
-    margin: 0 auto 10px auto !important;
-    background: white !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
-    border: 2px solid #e2e8f0 !important;
-    overflow: hidden !important;
-}
-
-#login-screen .logo-3d img {
-    width: 85% !important;
-    height: 85% !important;
-    object-fit: contain !important;
-    border-radius: 50% !important;
-    background: white !important;
-}
-
-#login-screen .kiosk-title {
-    font-size: 20px !important;
-    color: #1e293b !important;
-    font-weight: 700 !important;
-    margin-bottom: 5px !important;
-    text-shadow: none !important;
-    text-align: center !important;
-}
-
-#login-screen .subtitle {
-    color: #64748b !important;
-    font-size: 13px !important;
-    text-align: center !important;
-    margin-bottom: 20px !important;
-}
-
-#login-screen .login-form {
-    max-width: 100% !important;
-    margin: 0 !important;
-}
-
-#login-screen .login-form label {
-    color: #475569 !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    display: block !important;
-    margin-bottom: 8px !important;
-    text-align: left !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-}
-
-#login-screen .login-form input {
-    width: 100% !important;
-    padding: 12px 15px !important;
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 10px !important;
-    font-size: 15px !important;
-    margin-bottom: 15px !important;
-    background: #f8fafc !important;
-    color: #1e293b !important;
-    text-align: left !important;
-}
-
-#login-screen .login-form input:focus {
-    outline: none !important;
-    border-color: #667eea !important;
-    background: white !important;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-}
-
-#login-screen .btn-metal {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    border: none !important;
-    padding: 12px 24px !important;
-    border-radius: 10px !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    min-height: 44px !important;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
-    text-transform: none !important;
-    letter-spacing: 0 !important;
-    width: auto !important;
-}
-
-#login-screen .btn-link {
-    background: none !important;
-    border: none !important;
-    color: #667eea !important;
-    cursor: pointer !important;
-    font-size: 13px !important;
-    margin-top: 15px !important;
-    display: block !important;
-    width: 100% !important;
-    text-align: center !important;
-    font-weight: 500 !important;
-}
-
-/* Panel del login compacto */
-#login-screen .kiosk-panel {
-    background: white !important;
-    border-radius: 20px !important;
-    padding: 30px !important;
-    max-width: 400px !important;
-    width: 100% !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
-    border: none !important;
-}
-
-#login-screen .kiosk-panel::before,
-#login-screen .kiosk-panel::after {
-    display: none !important;
 }
