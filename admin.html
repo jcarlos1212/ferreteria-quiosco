@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ANTI-CACHE: fuerza recarga del CSS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Panel Administrativo - Vendedor IA</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="admin.css">
+    <!-- ?v=3 fuerza que el navegador descargue el CSS nuevo -->
+    <link rel="stylesheet" href="admin.css?v=3">
 <base target="_blank">
 </head>
 <body>
@@ -269,6 +274,7 @@
         <div class="toast-message" id="toastMessage"></div>
     </div>
 
-    <script src="admin.js"></script>
+    <!-- ?v=2 fuerza recarga del JS -->
+    <script src="admin.js?v=2"></script>
 </body>
 </html>
