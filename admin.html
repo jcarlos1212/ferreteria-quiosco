@@ -26,8 +26,11 @@
                 <p class="subtitle">Vendedor IA - Quiosco Inteligente</p>
             </div>
             <div class="login-form">
-                <label for="adminPassword">CONTRASEÑA</label>
-                <input type="password" id="adminPassword" placeholder="Ingresa la contraseña" autofocus>
+               <label for="adminEmail">CORREO</label>
+               <input type="email" id="adminEmail" placeholder="admin@ejemplo.com" autocomplete="off">
+    
+            <label for="adminPassword">CONTRASEÑA</label>
+            <input type="password" id="adminPassword" placeholder="Ingresa la contraseña">  
                 <button class="btn-metal" onclick="login()">Ingresar</button>
                 <div id="loginError" class="error-message"></div>
                 <button class="btn-link" onclick="window.location.href='index.html'">← Volver al Quiosco</button>
