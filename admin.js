@@ -71,7 +71,7 @@ async function login() {
     
     try {
         const { data, error } = await db.auth.signInWithPassword({
-            email: 'admin@tunegocio.com',  // <-- el email que creaste arriba
+            email: 'jcarlos121208@gmail.com',  // <-- el email que creaste arriba
             password: password
         });
         
