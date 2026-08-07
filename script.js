@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchProducts();
+            if (e.key === 'Enter') debouncedSearch();
         });
     }
 
@@ -1048,33 +1048,75 @@ async function sendQuestion() {
                 // Resetear cantidades del modal
                 modalQuantities = {};
 
-                responseProducts.innerHTML = productosFiltrados.map((prod) => {
-                    const safeId = 'modal_' + prod.id;
-                    modalQuantities[safeId] = 1;
-                    return `
-                    <div class="product-item">
-                        <div class="product-image-small">
-                            ${prod.imagen_url ?
-                           `<img src="${escapeHtml(prod.imagen_url)}" alt="${escapeHtml(prod.nombre)}" onclick="openImageZoom('${escapeHtml(prod.imagen_url)}', '${escapeHtml(prod.nombre).replace(/'/g, "\\'")}', event)">` :
-                           `<div class="no-image-small">📦</div>`
-                             }
-                        </div>
-                        <div class="product-info">
-                            <div class="product-name">${escapeHtml(prod.nombre)}</div>
-                            <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
-                            <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
-                            <div class="quantity-control">
-                                <button class="qty-btn" onclick="vibrate(50); decreaseModalQty('${safeId}')">-</button>
-                                <span class="qty-display" id="qty-${safeId}">1</span>
-                                <button class="qty-btn" onclick="vibrate(50); increaseModalQty('${safeId}')">+</button>
-                            </div>
-                        </div>
-                        <button class="btn-add" onclick="vibrate(100); addToCartModal('${safeId}', ${prod.id}, '${escapeHtml(prod.nombre).replace(/'/g, "\\'")}', ${prod.precio}, ${prod.stock}, '${escapeHtml(prod.categoria || 'General').replace(/'/g, "\\'")}')" ${prod.stock === 0 ? 'disabled' : ''}>
-                            Agregar
-                        </button>
-                    </div>
-                `}).join('');
+               
+               responseProducts.innerHTML = '';
+productosFiltrados.forEach((prod) => {
+    const safeId = 'modal_' + prod.id;
+    modalQuantities[safeId] = 1;
 
+    const item = document.createElement('div');
+    item.className = 'product-item';
+    
+    item.innerHTML = `
+        <div class="product-image-small">
+            ${prod.imagen_url ?
+           `<img src="${escapeHtml(prod.imagen_url)}" alt="${escapeHtml(prod.nombre)}" class="zoomable-img" data-url="${escapeHtml(prod.imagen_url)}" data-name="${escapeHtml(prod.nombre)}">` :
+           `<div class="no-image-small">📦</div>`
+             }
+        </div>
+        <div class="product-info">
+            <div class="product-name">${escapeHtml(prod.nombre)}</div>
+            <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
+            <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
+            <div class="quantity-control">
+                <button class="qty-btn" data-action="decrease" data-safeid="${safeId}">-</button>
+                <span class="qty-display" id="qty-${safeId}">1</span>
+                <button class="qty-btn" data-action="increase" data-safeid="${safeId}">+</button>
+            </div>
+        </div>
+        <button class="btn-add" data-action="add-modal" data-safeid="${safeId}" data-id="${prod.id}" data-name="${escapeHtml(prod.nombre)}" data-price="${prod.precio}" data-stock="${prod.stock}" data-categoria="${escapeHtml(prod.categoria || 'General')}" ${prod.stock === 0 ? 'disabled' : ''}>
+            Agregar
+        </button>
+    `;
+
+    // Event listeners seguros
+    const zoomImg = item.querySelector('.zoomable-img');
+    if (zoomImg) {
+        zoomImg.addEventListener('click', (e) => {
+            openImageZoom(zoomImg.dataset.url, zoomImg.dataset.name, e);
+        });
+    }
+
+    item.querySelectorAll('.qty-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            vibrate(50);
+            const sid = btn.dataset.safeid;
+            if (btn.dataset.action === 'increase') increaseModalQty(sid);
+            else decreaseModalQty(sid);
+        });
+    });
+
+    const addBtn = item.querySelector('.btn-add');
+    if (addBtn && prod.stock > 0) {
+        addBtn.addEventListener('click', () => {
+            vibrate(100);
+            addToCartModal(
+                addBtn.dataset.safeid,
+                parseInt(addBtn.dataset.id),
+                addBtn.dataset.name,
+                parseFloat(addBtn.dataset.price),
+                parseInt(addBtn.dataset.stock),
+                addBtn.dataset.categoria
+            );
+        });
+    }
+
+    responseProducts.appendChild(item);
+});
+               
+
+
+               
                 setTimeout(() => {
                     const chatContainer = document.querySelector('.chat-container');
                     if (chatContainer) {
