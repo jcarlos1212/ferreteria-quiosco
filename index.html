@@ -64,7 +64,7 @@
             <div class="input-section">
                 <label for="clientName">INGRESA TU NOMBRE</label>
                 <input type="text" id="clientName" placeholder="Ej: Juan Carlos" autocomplete="off" autofocus>
-                <button class="btn-metal" onclick="vibrate(100); startSession()">
+                <button class="btn-metal" id="btnStartSession">
                     <span>Comenzar</span>
                     <div class="btn-indicator"></div>
                 </button>
@@ -200,9 +200,9 @@
             <div class="chat-container">
                 <div class="chat-input-wrapper">
                     <input type="text" class="chat-input" id="userInput" placeholder="Escribe o usa el micrófono..." autocomplete="off">
-                    <button class="voice-btn" id="voiceBtn" onclick="vibrate(100); toggleVoice()">🎤</button>
+                    <button class="voice-btn" id="voiceBtn">🎤</button>
                 </div>
-                <button class="btn-metal" id="sendBtn" onclick="vibrate(100); sendQuestion()">Enviar</button>
+                <button class="btn-metal" id="sendBtn">Enviar</button>
             </div>
             <div id="response" class="response" style="display: none;">
                 <div id="responseContent"></div>
