@@ -97,13 +97,13 @@
                     <div class="module-icon">🛒</div>
                     <div class="module-label">COMPRAR</div>
                 </div>
-                    <div class="module-card" data-module="asesor">
+                <div class="module-card" data-module="asesor">
                     <div class="module-icon">🤖</div>
                     <div class="module-label">ASISTENCIA / ASESORÍA</div>
                 </div>
             </div>
             <div class="exit-section">
-                <button class="btn-exit-metal" onclick="vibrate(100); endSession()">Salir</button>
+                <button class="btn-exit-metal" id="btnEndSession">Salir</button>
             </div>
         </div>
     </div>
@@ -117,16 +117,16 @@
                 </div>
                 <h2 class="screen-title">Buscar Productos</h2>
             </div>
-           <div class="search-section">
+            <div class="search-section">
                 <input type="text" class="search-input" id="searchInput" placeholder="Escribe el nombre del producto..." autocomplete="off">
                 <button class="btn-metal" id="searchBtn">Buscar</button>
-           </div>
+            </div>
             <div class="product-list" id="productList">
                 <div class="empty-state">Busca productos para agregar a tu compra</div>
             </div>
             <div class="cart-actions">
-                <button class="btn-metal secondary" onclick="vibrate(100); showScreen('screen-menu')">Atrás</button>
-                <button class="btn-metal primary" onclick="vibrate(100); showCart()">
+                <button class="btn-metal secondary" id="btnBackToMenu">Atrás</button>
+                <button class="btn-metal primary" id="btnShowCart">
                     Ver mi compra (<span id="cartCount">0</span>)
                 </button>
             </div>
@@ -146,8 +146,8 @@
                 <div class="empty-state">Tu carrito está vacío</div>
             </div>
             <div class="cart-actions">
-                <button class="btn-metal secondary" onclick="vibrate(100); showScreen('screen-buy')">Seguir comprando</button>
-                <button class="btn-metal primary" onclick="vibrate(100); confirmPurchase()">Confirmar compra</button>
+                <button class="btn-metal secondary" id="btnKeepShopping">Seguir comprando</button>
+                <button class="btn-metal primary" id="btnConfirmPurchase">Confirmar compra</button>
             </div>
         </div>
     </div>
@@ -165,9 +165,9 @@
                 <div class="sale-number-display" id="saleNumber">VTA-000000</div>
                 <div id="confirmationDetails"></div>
                 <p class="confirmation-note">Acércate a caja con este comprobante para completar tu compra</p>
-                <button class="btn-metal success" onclick="vibrate(100); printTicket()">🖨️ Imprimir Comprobante</button>
-                <button class="btn-metal btn-whatsapp" onclick="vibrate(100); compartirWhatsAppComprobante()">📱 Enviar a mi WhatsApp</button>
-                <button class="btn-metal" onclick="vibrate(100); resetToWelcome()" style="margin-top: 10px;">Volver al inicio</button>
+                <button class="btn-metal success" id="btnPrintTicket">🖨️ Imprimir Comprobante</button>
+                <button class="btn-metal btn-whatsapp" id="btnShareWhatsApp">📱 Enviar a mi WhatsApp</button>
+                <button class="btn-metal" id="btnBackToStart" style="margin-top: 10px;">Volver al inicio</button>
             </div>
         </div>
     </div>
@@ -185,7 +185,7 @@
                 <p>Por visitarnos, vuelve pronto</p>
                 <div class="countdown-display" id="countdown">5</div>
                 <p class="countdown-text">Regresando al inicio...</p>
-                <button class="btn-metal" onclick="vibrate(100); resetToWelcome()">Finalizar ahora</button>
+                <button class="btn-metal" id="btnFinishNow">Finalizar ahora</button>
             </div>
         </div>
     </div>
@@ -195,7 +195,7 @@
         <div class="modal-panel">
             <div class="modal-header">
                 <h3 class="modal-title" id="modalTitle">Asistente IA</h3>
-                <button class="btn-close" onclick="vibrate(100); closeModal()">✕</button>
+                <button class="btn-close" id="btnCloseModal">✕</button>
             </div>
             <div class="chat-container">
                 <div class="chat-input-wrapper">
@@ -208,8 +208,8 @@
                 <div id="responseContent"></div>
                 <div id="responseProducts" class="response-products" style="display: none;"></div>
                 <div class="response-actions" id="responseActions" style="display: none;">
-                    <button class="btn-action" onclick="vibrate(100); speakResponse()">🔊 Escuchar</button>
-                    <button class="btn-action" onclick="vibrate(100); printQuote()">🖨️ Imprimir</button>
+                    <button class="btn-action" id="btnSpeak">🔊 Escuchar</button>
+                    <button class="btn-action" id="btnPrintQuote">🖨️ Imprimir</button>
                 </div>
             </div>
             <div class="speaking-indicator" id="speakingIndicator">
@@ -226,7 +226,7 @@
     </div>
 
     <!-- Botón flotante de ayuda -->
-    <button class="help-float-btn" onclick="vibrate(100); llamarVendedor()" title="Necesito ayuda">💬</button>
+    <button class="help-float-btn" id="btnHelpFloat" title="Necesito ayuda">💬</button>
 
     <!-- Botón Admin -->
     <button id="adminAccessBtn" class="admin-secret-btn" onclick="window.location.href='admin.html'" title="Acceso Administrador">⚙️</button>
@@ -246,25 +246,25 @@
     <script src="script.js"></script>
 
     <!-- Modal de WhatsApp -->
-<div id="whatsappModal" class="modal">
-    <div class="modal-panel small">
-        <div class="modal-header">
-            <h3 class="modal-title">📱 Enviar Comprobante por WhatsApp</h3>
-            <button class="btn-close" onclick="cerrarModalWhatsApp()">✕</button>
-        </div>
-        <div class="form-group">
-            <label>Número de WhatsApp *</label>
-            <input type="tel" id="whatsappNumberInput" placeholder="51999123456" maxlength="15">
-            <small>Ingresa el número con código de país (51 para Perú). Ej: 51999123456</small>
-        </div>
-        <div class="modal-actions">
-            <button class="btn-metal secondary" onclick="cerrarModalWhatsApp()">Cancelar</button>
-            <button class="btn-metal success" onclick="enviarWhatsApp(document.getElementById('whatsappNumberInput').value)">
-                📤 Enviar
-            </button>
+    <div id="whatsappModal" class="modal">
+        <div class="modal-panel small">
+            <div class="modal-header">
+                <h3 class="modal-title">📱 Enviar Comprobante por WhatsApp</h3>
+                <button class="btn-close" id="btnCloseWhatsAppModal">✕</button>
+            </div>
+            <div class="form-group">
+                <label>Número de WhatsApp *</label>
+                <input type="tel" id="whatsappNumberInput" placeholder="51999123456" maxlength="15">
+                <small>Ingresa el número con código de país (51 para Perú). Ej: 51999123456</small>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-metal secondary" id="btnCancelWhatsApp">Cancelar</button>
+                <button class="btn-metal success" id="btnSendWhatsApp">
+                    📤 Enviar
+                </button>
+            </div>
         </div>
     </div>
-</div>
-    
+
 </body>
 </html>
