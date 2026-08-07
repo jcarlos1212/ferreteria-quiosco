@@ -656,12 +656,12 @@ function showCart() {
 }
 
 /* ============================================
-   CONFIRMAR COMPRA
+   CONFIRMAR COMPRA (TRANSACCIÓN ATÓMICA)
    ============================================ */
 async function confirmPurchase() {
-    if (!rateLimit('confirm_purchase', 3000)) return;
     if (cart.length === 0) return;
     if (isProcessingPurchase) return;
+    if (!rateLimit('confirm_purchase', 3000)) return; // Anti-spam
     isProcessingPurchase = true;
 
     const confirmBtn = document.querySelector('#screen-cart .btn-metal.primary');
@@ -676,7 +676,6 @@ async function confirmPurchase() {
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const productsList = cart.map(item => `${item.qty} x ${item.name} (S/ ${(item.price * item.qty).toFixed(2)})`).join(', ');
     
-    // Preparar items para la función RPC
     const itemsJson = cart.map(item => ({
         nombre: item.name,
         cantidad: item.qty
@@ -686,7 +685,6 @@ async function confirmPurchase() {
     currentSaleTotal = total;
 
     try {
-        // ✅ TRANSACCIÓN ATÓMICA via RPC
         const { data, error } = await db.rpc('registrar_venta_con_stock', {
             p_numero_venta: saleNumber,
             p_fecha: new Date().toISOString().split('T')[0],
@@ -700,7 +698,6 @@ async function confirmPurchase() {
         if (error) throw error;
         
         if (data && data.success) {
-            // Mostrar confirmación
             const saleNumberDisplay = document.getElementById('saleNumber');
             if (saleNumberDisplay) saleNumberDisplay.textContent = saleNumber;
 
@@ -721,7 +718,7 @@ async function confirmPurchase() {
 
     } catch (error) {
         console.error('Error:', error);
-        showToast('⚠️ Error al procesar la compra: ' + error.message);
+        showToast('⚠️ Error al procesar: ' + error.message);
     } finally {
         if (confirmBtn) {
             confirmBtn.disabled = false;
@@ -731,6 +728,7 @@ async function confirmPurchase() {
         clearCartStorage();
     }
 }
+
 
 /* ============================================
    WHATSAPP - NOTIFICACIÓN AL ADMIN
