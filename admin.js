@@ -109,13 +109,13 @@ function logout() {
 
 
 
-function logout() {
-    const passwordInput = document.getElementById('adminPassword');
-    if (passwordInput) passwordInput.value = '';
-    const loginError = document.getElementById('loginError');
-    if (loginError) loginError.textContent = '';
-    showScreen('login-screen');
-}
+//function logout() {
+//    const passwordInput = document.getElementById('adminPassword');
+//    if (passwordInput) passwordInput.value = '';
+//    const loginError = document.getElementById('loginError');
+//    if (loginError) loginError.textContent = '';
+//    showScreen('login-screen');
+//}
 
 /* ============================================
 NAVEGACIÓN
