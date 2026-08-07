@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ============================================
 LOGIN
 ============================================ */
+
 async function login() {
     const passwordInput = document.getElementById('adminPassword');
     const loginError = document.getElementById('loginError');
@@ -69,31 +70,39 @@ async function login() {
     }
     
     try {
-        const { data, error } = await db
-            .from('config_admin')
-            .select('valor')
-            .eq('clave', 'admin_password')
-            .single();
+        const { data, error } = await db.auth.signInWithPassword({
+            email: 'admin@tunegocio.com',  // <-- el email que creaste arriba
+            password: password
+        });
         
         if (error) {
-            console.error('Error verificando contraseña:', error);
-            if (loginError) loginError.textContent = 'Error de conexión';
-            return;
-        }
-        
-        if (data && data.valor === password) {
-            showScreen('admin-screen');
-            loadDashboard();
-        } else {
+            console.error('Error login:', error);
             if (loginError) loginError.textContent = 'Contraseña incorrecta';
             passwordInput.value = '';
             passwordInput.focus();
+            return;
+        }
+        
+        if (data.session) {
+            showScreen('admin-screen');
+            loadDashboard();
         }
     } catch (error) {
         console.error('Error en login:', error);
         if (loginError) loginError.textContent = 'Error de conexión';
     }
 }
+
+async function logout() {
+    await db.auth.signOut();
+    const passwordInput = document.getElementById('adminPassword');
+    if (passwordInput) passwordInput.value = '';
+    const loginError = document.getElementById('loginError');
+    if (loginError) loginError.textContent = '';
+    showScreen('login-screen');
+}
+
+
 
 function logout() {
     const passwordInput = document.getElementById('adminPassword');
