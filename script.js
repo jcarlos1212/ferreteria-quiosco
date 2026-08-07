@@ -179,6 +179,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => {
+            vibrate(100);
+            debouncedSearch();
+        });
+    }
+   
+
     const modal = document.getElementById('modal');
     if (modal) {
         modal.addEventListener('click', function(e) {
@@ -954,6 +964,7 @@ function stopListening() {
    ENVIAR PREGUNTA A LA IA
    ============================================ */
 async function sendQuestion() {
+    if (!rateLimit('ia_question', 5000)) return; // 5 segundos entre preguntas
     const userInput = document.getElementById('userInput');
     if (!userInput) return;
 
