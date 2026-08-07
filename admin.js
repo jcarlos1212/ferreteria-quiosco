@@ -58,26 +58,29 @@ LOGIN
 ============================================ */
 
 async function login() {
+    const emailInput = document.getElementById('adminEmail');
     const passwordInput = document.getElementById('adminPassword');
     const loginError = document.getElementById('loginError');
     
-    if (!passwordInput) return;
+    if (!emailInput || !passwordInput) return;
     
+    const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
-    if (!password) {
-        if (loginError) loginError.textContent = 'Ingresa la contraseña';
+    
+    if (!email || !password) {
+        if (loginError) loginError.textContent = 'Ingresa correo y contraseña';
         return;
     }
     
     try {
         const { data, error } = await db.auth.signInWithPassword({
-            email: 'jcarlos121208@gmail.com',  // <-- el email que creaste arriba
+            email: email,
             password: password
         });
         
         if (error) {
             console.error('Error login:', error);
-            if (loginError) loginError.textContent = 'Contraseña incorrecta';
+            if (loginError) loginError.textContent = 'Correo o contraseña incorrectos';
             passwordInput.value = '';
             passwordInput.focus();
             return;
