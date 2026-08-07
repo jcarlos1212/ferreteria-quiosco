@@ -1042,3 +1042,372 @@ async function loadProductosRentables() {
         console.error('Error cargando gráfico rentables:', error);
     }
 }
+
+/* ============================================
+   NUEVO: CONFIGURACION DE PAGOS QR
+   ============================================ */
+async function loadConfigPagos() {
+    try {
+        const { data, error } = await db
+            .from('config_pagos')
+            .select('*')
+            .single();
+        
+        if (error) {
+            console.log('No hay config de pagos QR');
+            return;
+        }
+        
+        if (data) {
+            document.getElementById('yapeNumero').value = data.yape_numero || '';
+            document.getElementById('yapeTitular').value = data.yape_titular || '';
+            document.getElementById('plinNumero').value = data.plin_numero || '';
+            document.getElementById('plinTitular').value = data.plin_titular || '';
+            document.getElementById('qrEnabled').checked = data.qr_enabled !== false;
+        }
+    } catch (error) {
+        console.error('Error cargando config pagos:', error);
+    }
+}
+
+async function guardarConfigPagos() {
+    const yapeNumero = document.getElementById('yapeNumero').value.trim();
+    const yapeTitular = document.getElementById('yapeTitular').value.trim();
+    const plinNumero = document.getElementById('plinNumero').value.trim();
+    const plinTitular = document.getElementById('plinTitular').value.trim();
+    const qrEnabled = document.getElementById('qrEnabled').checked;
+    
+    try {
+        const { error } = await db
+            .from('config_pagos')
+            .upsert({
+                id: 1,
+                yape_numero: yapeNumero || null,
+                yape_titular: yapeTitular || null,
+                plin_numero: plinNumero || null,
+                plin_titular: plinTitular || null,
+                qr_enabled: qrEnabled,
+                updated_at: new Date().toISOString()
+            });
+        
+        if (error) throw error;
+        showToast('✅ Configuracion QR guardada correctamente');
+    } catch (error) {
+        console.error('Error guardando config pagos:', error);
+        alert('❌ Error al guardar configuracion QR: ' + error.message);
+    }
+}
+
+/* ============================================
+   NUEVO: MOVIMIENTOS DE INVENTARIO
+   ============================================ */
+let allMovimientos = [];
+
+async function loadMovimientos() {
+    const movementsList = document.getElementById('movementsList');
+    if (!movementsList) return;
+    
+    movementsList.innerHTML = '<div class="empty-state">Cargando movimientos...</div>';
+    
+    try {
+        const { data, error } = await db
+            .from('movimientos_stock')
+            .select('*, productos(nombre)')
+            .order('created_at', { ascending: false })
+            .limit(100);
+        
+        if (error) throw error;
+        
+        allMovimientos = data || [];
+        renderMovimientos(allMovimientos);
+    } catch (error) {
+        console.error('Error cargando movimientos:', error);
+        movementsList.innerHTML = '<div class="empty-state">Error al cargar movimientos</div>';
+    }
+}
+
+function renderMovimientos(movimientos) {
+    const movementsList = document.getElementById('movementsList');
+    if (!movementsList) return;
+    
+    if (movimientos.length === 0) {
+        movementsList.innerHTML = '<div class="empty-state">No hay movimientos registrados</div>';
+        return;
+    }
+    
+    movementsList.innerHTML = movimientos.map(m => {
+        const tipoClass = m.tipo === 'entrada' ? 'movement-in' : (m.tipo === 'salida' ? 'movement-out' : 'movement-adjust');
+        const tipoIcon = m.tipo === 'entrada' ? '📥' : (m.tipo === 'salida' ? '📤' : '⚖️');
+        
+        return `
+            <div class="movement-item ${tipoClass}">
+                <div class="movement-info">
+                    <div class="movement-product">${escapeHtml(m.productos?.nombre || 'Producto eliminado')}</div>
+                    <div class="movement-meta">
+                        <span class="movement-type">${tipoIcon} ${m.tipo.toUpperCase()}</span>
+                        <span class="movement-date">${new Date(m.created_at).toLocaleString('es-PE')}</span>
+                    </div>
+                    <div class="movement-reason">${escapeHtml(m.motivo || 'Sin motivo')}</div>
+                </div>
+                <div class="movement-qty">
+                    <span class="movement-amount ${m.tipo === 'entrada' ? 'positive' : 'negative'}">
+                        ${m.tipo === 'entrada' ? '+' : '-'}${m.cantidad}
+                    </span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filtrarMovimientos() {
+    const search = document.getElementById('searchMovimiento').value.toLowerCase();
+    const tipo = document.getElementById('filterTipoMov').value;
+    
+    let filtered = allMovimientos;
+    
+    if (search) {
+        filtered = filtered.filter(m => 
+            (m.productos?.nombre || '').toLowerCase().includes(search)
+        );
+    }
+    
+    if (tipo !== 'todos') {
+        filtered = filtered.filter(m => m.tipo === tipo);
+    }
+    
+    renderMovimientos(filtered);
+}
+
+/* ============================================
+   NUEVO: CRUD DE CUPONES
+   ============================================ */
+let allCuponesAdmin = [];
+let currentEditCuponId = null;
+
+async function loadCupones() {
+    const cuponesGrid = document.getElementById('cuponesGrid');
+    if (!cuponesGrid) return;
+    
+    cuponesGrid.innerHTML = '<div class="empty-state">Cargando cupones...</div>';
+    
+    try {
+        const { data, error } = await db
+            .from('cupones')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        allCuponesAdmin = data || [];
+        renderCuponesAdmin(allCuponesAdmin);
+    } catch (error) {
+        console.error('Error cargando cupones:', error);
+        cuponesGrid.innerHTML = '<div class="empty-state">Error al cargar cupones</div>';
+    }
+}
+
+function renderCuponesAdmin(cupones) {
+    const cuponesGrid = document.getElementById('cuponesGrid');
+    if (!cuponesGrid) return;
+    
+    if (cupones.length === 0) {
+        cuponesGrid.innerHTML = '<div class="empty-state">No hay cupones registrados</div>';
+        return;
+    }
+    
+    const hoy = new Date().toISOString().split('T')[0];
+    
+    cuponesGrid.innerHTML = cupones.map(c => {
+        const valorTexto = c.tipo === 'porcentaje' ? `${c.valor}%` : `S/ ${parseFloat(c.valor).toFixed(2)}`;
+        const estaExpirado = c.fecha_fin && hoy > c.fecha_fin;
+        const usosRestantes = c.usos_maximos ? (c.usos_maximos - (c.usos_actuales || 0)) : '∞';
+        
+        return `
+            <div class="product-card ${c.estado === 'inactivo' || estaExpirado ? 'product-inactive' : ''}">
+                <div class="product-card-header">
+                    <div class="product-card-name" style="font-family:monospace; color:#ed8936;">${escapeHtml(c.codigo)}</div>
+                    <span class="product-badge ${c.estado}">${c.estado}</span>
+                </div>
+                <div class="product-card-meta">
+                    <span class="product-card-category">${c.tipo === 'porcentaje' ? 'Porcentaje' : 'Monto fijo'}</span>
+                    <span class="product-card-price">${valorTexto}</span>
+                </div>
+                <div class="product-card-stock">
+                    🎟️ Usados: ${c.usos_actuales || 0} / ${c.usos_maximos || '∞'} restantes<br>
+                    📅 ${c.fecha_inicio || 'Sin inicio'} → ${c.fecha_fin || 'Sin fin'}
+                </div>
+                <div class="product-card-actions">
+                    <button class="btn-action-card edit" onclick="openCuponModal(${c.id})">✏️ Editar</button>
+                    ${c.estado === 'activo' ? 
+                        `<button class="btn-action-card delete" onclick="desactivarCupon(${c.id})">🗑️ Desactivar</button>` :
+                        `<button class="btn-action-card restore" onclick="activarCupon(${c.id})">✅ Activar</button>`
+                    }
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filtrarCupones() {
+    const search = document.getElementById('searchCupon').value.toLowerCase();
+    const estado = document.getElementById('filterEstadoCupon').value;
+    
+    let filtered = allCuponesAdmin;
+    
+    if (search) {
+        filtered = filtered.filter(c => c.codigo.toLowerCase().includes(search));
+    }
+    
+    if (estado !== 'todos') {
+        filtered = filtered.filter(c => c.estado === estado);
+    }
+    
+    renderCuponesAdmin(filtered);
+}
+
+function openCuponModal(cuponId = null) {
+    currentEditCuponId = cuponId;
+    const modal = document.getElementById('cuponModal');
+    const title = document.getElementById('cuponModalTitle');
+    
+    if (title) title.textContent = cuponId ? '✏️ Editar Cupon' : '➕ Nuevo Cupon';
+    
+    if (cuponId) {
+        const cupon = allCuponesAdmin.find(c => c.id === cuponId);
+        if (cupon) {
+            document.getElementById('cuponCodigo').value = cupon.codigo || '';
+            document.getElementById('cuponTipo').value = cupon.tipo || 'porcentaje';
+            document.getElementById('cuponValor').value = cupon.valor || '';
+            document.getElementById('cuponUsosMax').value = cupon.usos_maximos || '';
+            document.getElementById('cuponFechaInicio').value = cupon.fecha_inicio || '';
+            document.getElementById('cuponFechaFin').value = cupon.fecha_fin || '';
+            document.getElementById('cuponDescripcion').value = cupon.descripcion || '';
+            document.getElementById('cuponEstado').value = cupon.estado || 'activo';
+        }
+    } else {
+        document.getElementById('cuponForm').reset();
+        document.getElementById('cuponEstado').value = 'activo';
+        document.getElementById('cuponTipo').value = 'porcentaje';
+    }
+    
+    if (modal) modal.classList.add('active');
+}
+
+function closeCuponModal() {
+    currentEditCuponId = null;
+    const modal = document.getElementById('cuponModal');
+    if (modal) modal.classList.remove('active');
+}
+
+async function guardarCupon() {
+    const codigo = document.getElementById('cuponCodigo').value.trim().toUpperCase();
+    const tipo = document.getElementById('cuponTipo').value;
+    const valor = parseFloat(document.getElementById('cuponValor').value);
+    const usosMaximos = document.getElementById('cuponUsosMax').value ? parseInt(document.getElementById('cuponUsosMax').value) : null;
+    const fechaInicio = document.getElementById('cuponFechaInicio').value || null;
+    const fechaFin = document.getElementById('cuponFechaFin').value || null;
+    const descripcion = document.getElementById('cuponDescripcion').value.trim();
+    const estado = document.getElementById('cuponEstado').value;
+    
+    if (!codigo || isNaN(valor) || valor <= 0) {
+        alert('Completa el codigo y un valor valido');
+        return;
+    }
+    
+    try {
+        if (currentEditCuponId) {
+            const { error } = await db
+                .from('cupones')
+                .update({
+                    codigo,
+                    tipo,
+                    valor,
+                    usos_maximos: usosMaximos,
+                    fecha_inicio: fechaInicio,
+                    fecha_fin: fechaFin,
+                    descripcion,
+                    estado,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', currentEditCuponId);
+            
+            if (error) throw error;
+            showToast('✅ Cupon actualizado');
+        } else {
+            const { error } = await db
+                .from('cupones')
+                .insert([{
+                    codigo,
+                    tipo,
+                    valor,
+                    usos_maximos: usosMaximos,
+                    usos_actuales: 0,
+                    fecha_inicio: fechaInicio,
+                    fecha_fin: fechaFin,
+                    descripcion,
+                    estado,
+                    created_at: new Date().toISOString()
+                }]);
+            
+            if (error) throw error;
+            showToast('✅ Cupon creado exitosamente');
+        }
+        
+        closeCuponModal();
+        await loadCupones();
+    } catch (error) {
+        console.error('Error guardando cupon:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+async function desactivarCupon(cuponId) {
+    if (!confirm('¿Desactivar este cupon?')) return;
+    
+    try {
+        const { error } = await db
+            .from('cupones')
+            .update({ estado: 'inactivo' })
+            .eq('id', cuponId);
+        
+        if (error) throw error;
+        showToast('✅ Cupon desactivado');
+        await loadCupones();
+    } catch (error) {
+        console.error('Error desactivando cupon:', error);
+        alert('❌ Error al desactivar');
+    }
+}
+
+async function activarCupon(cuponId) {
+    try {
+        const { error } = await db
+            .from('cupones')
+            .update({ estado: 'activo' })
+            .eq('id', cuponId);
+        
+        if (error) throw error;
+        showToast('✅ Cupon activado');
+        await loadCupones();
+    } catch (error) {
+        console.error('Error activando cupon:', error);
+        alert('❌ Error al activar');
+    }
+}
+
+/* ============================================
+   MODIFICAR loadDashboard para incluir nuevos modulos
+   ============================================ */
+async function loadDashboard() {
+    await Promise.all([
+        loadVentas(),
+        loadStockBajo(),
+        loadTopProductos(),
+        cargarConfigNegocio(),
+        cargarProductosAdmin(),
+        loadAnalytics(30),
+        loadMovimientos(),
+        loadCupones(),
+        loadConfigPagos()
+    ]);
+}
