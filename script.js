@@ -1,55 +1,4 @@
 /* ============================================
-   RATE LIMITING Y DEBOUNCE
-   ============================================ */
-const rateLimiters = {};
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function rateLimit(key, limitMs) {
-    const now = Date.now();
-    if (rateLimiters[key] && now - rateLimiters[key] < limitMs) {
-        showToast('⏳ Por favor espera un momento...');
-        return false;
-    }
-    rateLimiters[key] = now;
-    return true;
-}
-
-// Aplicar a funciones críticas:
-const debouncedSearch = debounce(searchProducts, 300);
-
-// Reemplazar en index.html: oninput en lugar de onclick para búsqueda
-// <input type="text" id="searchInput" placeholder="..." autocomplete="off">
-// En DOMContentLoaded:
-document.getElementById('searchInput').addEventListener('input', debouncedSearch);
-
-// En sendQuestion:
-async function sendQuestion() {
-    if (!rateLimit('ia_question', 5000)) return; // 5 segundos entre preguntas
-    // ... resto del código
-}
-
-// En confirmPurchase:
-async function confirmPurchase() {
-    if (!rateLimit('confirm_purchase', 3000)) return; // 3 segundos entre compras
-    if (cart.length === 0) return;
-    if (isProcessingPurchase) return;
-    // ... resto del código
-}
-/* ============================================
-
-
-/* ============================================
    VENDEDOR IA - QUIOSCO INTELIGENTE v2.0
    SaaS Ready | PWA | WhatsApp | Sugerencias
    ============================================ */
@@ -75,6 +24,36 @@ let productQuantities = {};
 let modalQuantities = {};
 let allProductsCache = [];
 let negocioConfig = {};
+
+
+/* ============================================
+   RATE LIMITING Y DEBOUNCE (Seguridad)
+   ============================================ */
+const rateLimiters = {};
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function rateLimit(key, limitMs) {
+    const now = Date.now();
+    if (rateLimiters[key] && now - rateLimiters[key] < limitMs) {
+        showToast('⏳ Por favor espera un momento...');
+        return false;
+    }
+    rateLimiters[key] = now;
+    return true;
+}
+
+
 
 let inactivityTimer = null;
 const INACTIVITY_TIMEOUT = 120000;
@@ -206,6 +185,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.target === this) closeModal();
         });
     }
+
+    // ============================================
+    // EVENT LISTENERS SEGUROS PARA MÓDULOS (Anti-XSS)
+    // ============================================
+    document.querySelectorAll('.module-card').forEach(card => {
+        card.addEventListener('click', () => {
+            vibrate(100);
+            const module = card.dataset.module;
+            if (module === 'cotizar') openModal('cotizar');
+            else if (module === 'precio') openModal('precio');
+            else if (module === 'comprar') openBuyScreen();
+            else if (module === 'asesor') openModal('asesor');
+        });
+    });
+   
 
     cargarConfigDesdeQuiosco();
 
@@ -349,6 +343,8 @@ function openBuyScreen() {
 
     productQuantities = {};
 }
+
+const debouncedSearch = debounce(searchProducts, 300);
 
 /* ============================================
    BUSCAR PRODUCTOS
