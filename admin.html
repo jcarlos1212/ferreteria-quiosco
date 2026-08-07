@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- ANTI-CACHE: fuerza recarga del CSS -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Panel Administrativo - Vendedor IA</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <!-- ?v=3 fuerza que el navegador descargue el CSS nuevo -->
-    <link rel="stylesheet" href="admin.css?v=3">
-<base target="_blank">
+    <link rel="stylesheet" href="admin.css?v=4">
+    <base target="_blank">
 </head>
 <body>
 
@@ -29,9 +27,8 @@
             <div class="login-form">
                <label for="adminEmail">CORREO</label>
                <input type="email" id="adminEmail" placeholder="admin@ejemplo.com" autocomplete="off">
-    
-            <label for="adminPassword">CONTRASEÑA</label>
-            <input type="password" id="adminPassword" placeholder="Ingresa la contraseña">  
+               <label for="adminPassword">CONTRASEÑA</label>
+               <input type="password" id="adminPassword" placeholder="Ingresa la contraseña">  
                 <button class="btn-metal" onclick="login()">Ingresar</button>
                 <div id="loginError" class="error-message"></div>
                 <button class="btn-link" onclick="window.location.href='index.html'">← Volver al Quiosco</button>
@@ -61,14 +58,12 @@
                 <button class="btn-filter" data-period="todo" onclick="filterPeriod('todo')">Todo</button>
             </div>
 
-
             <!-- Dashboard Analytics -->
             <div class="section analytics-section">
                 <h3 class="section-title">📊 Dashboard Analytics</h3>
-
                 <div class="analytics-filters">
-                    <button class="btn-filter" data-analytics="7" onclick="loadAnalytics(7)">7 días</button>
-                    <button class="btn-filter active" data-analytics="30" onclick="loadAnalytics(30)">30 días</button>
+                    <button class="btn-filter" data-analytics="7" onclick="loadAnalytics(7)">7 dias</button>
+                    <button class="btn-filter active" data-analytics="30" onclick="loadAnalytics(30)">30 dias</button>
                     <button class="btn-filter" data-analytics="90" onclick="loadAnalytics(90)">3 meses</button>
                 </div>
 
@@ -90,7 +85,7 @@
                     <div class="stat-card">
                         <div class="stat-icon">📈</div>
                         <div class="stat-info">
-                            <div class="stat-label">Tasa Conversión</div>
+                            <div class="stat-label">Tasa Conversion</div>
                             <div class="stat-value" id="tasaConversion">0%</div>
                         </div>
                     </div>
@@ -105,22 +100,23 @@
 
                 <div class="charts-grid">
                     <div class="chart-card">
-                        <h4 class="chart-title">Ventas por Día</h4>
+                        <h4 class="chart-title">Ventas por Dia</h4>
                         <canvas id="ventasChart"></canvas>
                     </div>
                     <div class="chart-card">
-                        <h4 class="chart-title">Productos Más Rentables</h4>
+                        <h4 class="chart-title">Productos Mas Rentables</h4>
                         <canvas id="rentablesChart"></canvas>
                     </div>
                 </div>
             </div>
+
             <!-- Estadísticas -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">💰</div>
                     <div class="stat-info">
                         <div class="stat-label">Ventas Totales</div>
-                        <div class="stat-value" id="totalVentas">S/ 0.00</div>
+                        <div class="stat-value" id="totalVentas2">S/ 0.00</div>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -163,7 +159,6 @@
             <!-- Gestión de Productos -->
             <div class="section products-section">
                 <h3 class="section-title">📦 Gestión de Productos</h3>
-
                 <div class="products-toolbar">
                     <div class="search-products">
                         <input type="text" id="searchProductAdmin" placeholder="Buscar producto..." oninput="filtrarProductosAdmin()">
@@ -175,53 +170,84 @@
                     </select>
                     <button class="btn-metal success btn-new-product" onclick="openProductModal()">➕ Nuevo Producto</button>
                 </div>
-
                 <div class="products-counter" id="productsCounter"></div>
-
                 <div class="products-grid" id="productsGrid">
                     <div class="empty-state">Cargando productos...</div>
+                </div>
+            </div>
+
+            <!-- NUEVO: Movimientos de Inventario -->
+            <div class="section inventory-section">
+                <h3 class="section-title">📦 Movimientos de Inventario</h3>
+                <div class="products-toolbar">
+                    <div class="search-products">
+                        <input type="text" id="searchMovimiento" placeholder="Buscar producto..." oninput="filtrarMovimientos()">
+                    </div>
+                    <select id="filterTipoMov" class="filter-select" onchange="filtrarMovimientos()">
+                        <option value="todos">Todos</option>
+                        <option value="entrada">Entradas</option>
+                        <option value="salida">Salidas</option>
+                        <option value="ajuste">Ajustes</option>
+                    </select>
+                </div>
+                <div class="movements-list" id="movementsList">
+                    <div class="empty-state">Cargando movimientos...</div>
+                </div>
+            </div>
+
+            <!-- NUEVO: Cupones y Promociones -->
+            <div class="section cupones-section">
+                <h3 class="section-title">🎫 Cupones y Promociones</h3>
+                <div class="products-toolbar">
+                    <div class="search-products">
+                        <input type="text" id="searchCupon" placeholder="Buscar cupon..." oninput="filtrarCupones()">
+                    </div>
+                    <select id="filterEstadoCupon" class="filter-select" onchange="filtrarCupones()">
+                        <option value="todos">Todos</option>
+                        <option value="activo">Activos</option>
+                        <option value="inactivo">Inactivos</option>
+                    </select>
+                    <button class="btn-metal success btn-new-product" onclick="openCuponModal()">➕ Nuevo Cupon</button>
+                </div>
+                <div class="products-grid" id="cuponesGrid">
+                    <div class="empty-state">Cargando cupones...</div>
                 </div>
             </div>
 
             <!-- Configuración del Negocio -->
             <div class="section config-section">
                 <h3 class="section-title">🏪 Configuración del Negocio</h3>
-
                 <div id="planInfo"></div>
-
                 <div class="config-form">
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nombre del Negocio *</label>
-                            <input type="text" id="configNombre" placeholder="Ej: Ferretería El Constructor">
+                            <input type="text" id="configNombre" placeholder="Ej: Ferreteria El Constructor">
                         </div>
                         <div class="form-group">
                             <label>Plan SaaS</label>
                             <select id="configPlan">
-                                <option value="basico">Básico (50 productos)</option>
+                                <option value="basico">Basico (50 productos)</option>
                                 <option value="profesional">Profesional (200 productos)</option>
                                 <option value="empresarial">Empresarial (Ilimitado)</option>
                             </select>
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <label>WhatsApp del Negocio</label>
                             <input type="text" id="configWhatsapp" placeholder="Ej: 51999123456">
-                            <small>Para notificaciones y botón "Llamar vendedor"</small>
+                            <small>Para notificaciones y boton "Llamar vendedor"</small>
                         </div>
                         <div class="form-group">
-                            <label>Teléfono / Contacto</label>
+                            <label>Telefono / Contacto</label>
                             <input type="text" id="configTelefono" placeholder="Ej: (01) 234-5678">
                         </div>
                     </div>
-
                     <div class="form-group">
-                        <label>Dirección</label>
+                        <label>Direccion</label>
                         <input type="text" id="configDireccion" placeholder="Ej: Av. Principal 123, Lima">
                     </div>
-
                     <div class="form-group">
                         <label>URL del Logo</label>
                         <div class="logo-upload-section">
@@ -233,14 +259,46 @@
                             <img src="" alt="Logo actual" id="logoPreviewImg" style="display:none;">
                         </div>
                     </div>
-
-                    <button class="btn-metal primary" onclick="guardarConfig()">💾 Guardar Configuración</button>
+                    <button class="btn-metal primary" onclick="guardarConfig()">💾 Guardar Configuracion</button>
                 </div>
             </div>
 
-            <!-- Productos más vendidos -->
+            <!-- NUEVO: Configuración de Pagos QR -->
+            <div class="section config-section">
+                <h3 class="section-title">💳 Configuracion de Pagos QR (Yape/Plin)</h3>
+                <div class="config-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Numero Yape</label>
+                            <input type="text" id="yapeNumero" placeholder="Ej: 51999123456">
+                        </div>
+                        <div class="form-group">
+                            <label>Titular Yape</label>
+                            <input type="text" id="yapeTitular" placeholder="Nombre del titular">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Numero Plin</label>
+                            <input type="text" id="plinNumero" placeholder="Ej: 51999123456">
+                        </div>
+                        <div class="form-group">
+                            <label>Titular Plin</label>
+                            <input type="text" id="plinTitular" placeholder="Nombre del titular">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="qrEnabled" checked> Habilitar pagos con QR en el quiosco
+                        </label>
+                    </div>
+                    <button class="btn-metal primary" onclick="guardarConfigPagos()">💾 Guardar Configuracion QR</button>
+                </div>
+            </div>
+
+            <!-- Productos mas vendidos -->
             <div class="section">
-                <h3 class="section-title">🏆 Productos Más Vendidos</h3>
+                <h3 class="section-title">🏆 Productos Mas Vendidos</h3>
                 <div class="top-products" id="topProducts">
                     <div class="empty-state">Cargando...</div>
                 </div>
@@ -262,13 +320,13 @@
                         <input type="text" id="prodNombre" required placeholder="Ej: Cemento Andino">
                     </div>
                     <div class="form-group">
-                        <label>Categoría</label>
-                        <input type="text" id="prodCategoria" placeholder="Ej: Construcción">
+                        <label>Categoria</label>
+                        <input type="text" id="prodCategoria" placeholder="Ej: Construccion">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                         <label>SKU / Código *</label>
+                         <label>SKU / Codigo *</label>
                          <input type="text" id="prodSku" placeholder="Ej: TAL-001">
                     </div>
                     <div class="form-group">
@@ -313,7 +371,67 @@
         </div>
     </div>
 
-    <!-- Modal de confirmación de pago -->
+    <!-- NUEVO: Modal de Cupon (Crear/Editar) -->
+    <div id="cuponModal" class="modal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h3 class="modal-title" id="cuponModalTitle">Nuevo Cupon</h3>
+                <button class="btn-close" onclick="closeCuponModal()">✕</button>
+            </div>
+            <form id="cuponForm" onsubmit="event.preventDefault(); guardarCupon();">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Codigo *</label>
+                        <input type="text" id="cuponCodigo" required placeholder="Ej: DESCUENTO20" maxlength="20" style="text-transform:uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Descuento *</label>
+                        <select id="cuponTipo">
+                            <option value="porcentaje">Porcentaje (%)</option>
+                            <option value="monto">Monto Fijo (S/)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Valor *</label>
+                        <input type="number" id="cuponValor" step="0.01" min="0" required placeholder="Ej: 20">
+                    </div>
+                    <div class="form-group">
+                        <label>Usos Maximos</label>
+                        <input type="number" id="cuponUsosMax" min="1" placeholder="Ilimitado si vacio">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Inicio</label>
+                        <input type="date" id="cuponFechaInicio">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Fin</label>
+                        <input type="date" id="cuponFechaFin">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripcion</label>
+                    <input type="text" id="cuponDescripcion" placeholder="Ej: 20% de descuento en toda la tienda">
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="cuponEstado">
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-metal secondary" onclick="closeCuponModal()">Cancelar</button>
+                    <button type="submit" class="btn-metal success">💾 Guardar Cupon</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de confirmacion de pago -->
     <div id="confirmModal" class="modal">
         <div class="modal-panel small">
             <h3 class="modal-title">Confirmar Pago</h3>
@@ -331,7 +449,6 @@
         <div class="toast-message" id="toastMessage"></div>
     </div>
 
-    <!-- ?v=2 fuerza recarga del JS -->
-    <script src="admin.js?v=2"></script>
+    <script src="admin.js?v=3"></script>
 </body>
 </html>
