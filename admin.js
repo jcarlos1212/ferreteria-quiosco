@@ -170,6 +170,9 @@ async function loadDashboard() {
         cargarConfigNegocio(),
         cargarProductosAdmin(),
         loadAnalytics(30)
+        loadMovimientos(),      // ← NUEVO: Inventario avanzado
+        loadCupones(),          // ← NUEVO: Cupones
+        loadConfigPagos()       // ← NUEVO: Config QR
     ]);
 }
 
