@@ -1,6 +1,6 @@
 /* ============================================
-   VENDEDOR IA - QUIOSCO INTELIGENTE v2.0
-   SaaS Ready | PWA | WhatsApp | Sugerencias
+   VENDEDOR IA - QUIOSCO INTELIGENTE v2.1
+   SEGURIDAD: Anti-XSS | Rate Limiting | Transacciones Atómicas
    ============================================ */
 
 const SUPABASE_URL = 'https://tpdstpnvsyqcvsfminip.supabase.co';
@@ -24,7 +24,6 @@ let productQuantities = {};
 let modalQuantities = {};
 let allProductsCache = [];
 let negocioConfig = {};
-
 
 /* ============================================
    RATE LIMITING Y DEBOUNCE (Seguridad)
@@ -52,8 +51,6 @@ function rateLimit(key, limitMs) {
     rateLimiters[key] = now;
     return true;
 }
-
-
 
 let inactivityTimer = null;
 const INACTIVITY_TIMEOUT = 120000;
@@ -122,7 +119,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     recognition.onerror = function(event) {
         console.error('Error en reconocimiento de voz:', event.error);
         stopListening();
-        alert('Error al escuchar. Intenta de nuevo.');
+        showToast('Error al escuchar. Intenta de nuevo.');
     };
 
     recognition.onend = function() {
@@ -158,6 +155,7 @@ function clearInactivityTimer() {
    EVENTOS DEL TECLADO + INICIALIZACIÓN
    ============================================ */
 document.addEventListener('DOMContentLoaded', function() {
+    // Input de nombre
     const clientNameInput = document.getElementById('clientName');
     if (clientNameInput) {
         clientNameInput.addEventListener('keypress', function(e) {
@@ -165,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Input de búsqueda
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
@@ -172,6 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Input de chat IA
     const userInput = document.getElementById('userInput');
     if (userInput) {
         userInput.addEventListener('keypress', function(e) {
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-
+    // Botón buscar
     const searchBtn = document.getElementById('searchBtn');
     if (searchBtn) {
         searchBtn.addEventListener('click', () => {
@@ -187,8 +187,8 @@ document.addEventListener('DOMContentLoaded', function() {
             debouncedSearch();
         });
     }
-   
 
+    // Cerrar modal al hacer click fuera
     const modal = document.getElementById('modal');
     if (modal) {
         modal.addEventListener('click', function(e) {
@@ -209,7 +209,169 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (module === 'asesor') openModal('asesor');
         });
     });
-   
+
+    // Botón Comenzar
+    const btnStart = document.getElementById('btnStartSession');
+    if (btnStart) {
+        btnStart.addEventListener('click', () => {
+            vibrate(100);
+            startSession();
+        });
+    }
+
+    // Botón Salir
+    const btnEnd = document.getElementById('btnEndSession');
+    if (btnEnd) {
+        btnEnd.addEventListener('click', () => {
+            vibrate(100);
+            endSession();
+        });
+    }
+
+    // Botón Atrás (menú)
+    const btnBackMenu = document.getElementById('btnBackToMenu');
+    if (btnBackMenu) {
+        btnBackMenu.addEventListener('click', () => {
+            vibrate(100);
+            showScreen('screen-menu');
+        });
+    }
+
+    // Botón Ver carrito
+    const btnShowCart = document.getElementById('btnShowCart');
+    if (btnShowCart) {
+        btnShowCart.addEventListener('click', () => {
+            vibrate(100);
+            showCart();
+        });
+    }
+
+    // Botón Seguir comprando
+    const btnKeep = document.getElementById('btnKeepShopping');
+    if (btnKeep) {
+        btnKeep.addEventListener('click', () => {
+            vibrate(100);
+            showScreen('screen-buy');
+        });
+    }
+
+    // Botón Confirmar compra
+    const btnConfirm = document.getElementById('btnConfirmPurchase');
+    if (btnConfirm) {
+        btnConfirm.addEventListener('click', () => {
+            vibrate(100);
+            confirmPurchase();
+        });
+    }
+
+    // Botón Imprimir
+    const btnPrint = document.getElementById('btnPrintTicket');
+    if (btnPrint) {
+        btnPrint.addEventListener('click', () => {
+            vibrate(100);
+            printTicket();
+        });
+    }
+
+    // Botón WhatsApp
+    const btnWa = document.getElementById('btnShareWhatsApp');
+    if (btnWa) {
+        btnWa.addEventListener('click', () => {
+            vibrate(100);
+            compartirWhatsAppComprobante();
+        });
+    }
+
+    // Botón Volver al inicio (confirmación)
+    const btnBackStart = document.getElementById('btnBackToStart');
+    if (btnBackStart) {
+        btnBackStart.addEventListener('click', () => {
+            vibrate(100);
+            resetToWelcome();
+        });
+    }
+
+    // Botón Finalizar ahora
+    const btnFinish = document.getElementById('btnFinishNow');
+    if (btnFinish) {
+        btnFinish.addEventListener('click', () => {
+            vibrate(100);
+            resetToWelcome();
+        });
+    }
+
+    // Botón Cerrar modal
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    if (btnCloseModal) {
+        btnCloseModal.addEventListener('click', () => {
+            vibrate(100);
+            closeModal();
+        });
+    }
+
+    // Botón Enviar (IA)
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) {
+        sendBtn.addEventListener('click', () => {
+            vibrate(100);
+            sendQuestion();
+        });
+    }
+
+    // Botón Voz
+    const voiceBtn = document.getElementById('voiceBtn');
+    if (voiceBtn) {
+        voiceBtn.addEventListener('click', () => {
+            vibrate(100);
+            toggleVoice();
+        });
+    }
+
+    // Botón Escuchar respuesta
+    const btnSpeak = document.getElementById('btnSpeak');
+    if (btnSpeak) {
+        btnSpeak.addEventListener('click', () => {
+            vibrate(100);
+            speakResponse();
+        });
+    }
+
+    // Botón Imprimir cotización
+    const btnPrintQuote = document.getElementById('btnPrintQuote');
+    if (btnPrintQuote) {
+        btnPrintQuote.addEventListener('click', () => {
+            vibrate(100);
+            printQuote();
+        });
+    }
+
+    // Botón Ayuda flotante
+    const btnHelp = document.getElementById('btnHelpFloat');
+    if (btnHelp) {
+        btnHelp.addEventListener('click', () => {
+            vibrate(100);
+            llamarVendedor();
+        });
+    }
+
+    // Botones WhatsApp Modal
+    const btnCloseWa = document.getElementById('btnCloseWhatsAppModal');
+    if (btnCloseWa) {
+        btnCloseWa.addEventListener('click', cerrarModalWhatsApp);
+    }
+
+    const btnCancelWa = document.getElementById('btnCancelWhatsApp');
+    if (btnCancelWa) {
+        btnCancelWa.addEventListener('click', cerrarModalWhatsApp);
+    }
+
+    const btnSendWa = document.getElementById('btnSendWhatsApp');
+    if (btnSendWa) {
+        btnSendWa.addEventListener('click', () => {
+            const input = document.getElementById('whatsappNumberInput');
+            if (input) enviarWhatsApp(input.value);
+        });
+    }
 
     cargarConfigDesdeQuiosco();
 
@@ -246,7 +408,7 @@ function startSession() {
 
     const nameValue = nameInput.value.trim();
     if (!nameValue) {
-        alert('Por favor ingresa tu nombre');
+        showToast('Por favor ingresa tu nombre');
         return;
     }
 
@@ -258,7 +420,6 @@ function startSession() {
         greetingText.innerHTML = `¡Hola <strong>${escapeHtml(clientName)}</strong>! Soy tu asistente virtual.<br>Por favor elige una de las opciones y te ayudaré.`;
     }
 
-    // Restaurar carrito si existe
     loadCart();
     updateCartCount();
 
@@ -416,7 +577,7 @@ function displayProducts(products) {
     }
 
     productList.innerHTML = '';
-    
+
     products.forEach((prod) => {
         const nombre = prod.nombre || prod.name || 'Producto sin nombre';
         const precio = prod.precio || prod.price || 0;
@@ -429,11 +590,11 @@ function displayProducts(products) {
         const item = document.createElement('div');
         item.className = 'product-item';
         item.dataset.categoria = categoria;
-        
+
         item.innerHTML = `
             <div class="product-image-small">
                 ${imagen_url ?
-                 `<img src="${escapeHtml(imagen_url)}" alt="${escapeHtml(nombre)}">` :
+                 `<img src="${escapeHtml(imagen_url)}" alt="${escapeHtml(nombre)}" class="zoomable-img" data-url="${escapeHtml(imagen_url)}" data-name="${escapeHtml(nombre)}">` :
                  `<div class="no-image-small">📦</div>`
                  }
             </div>
@@ -451,7 +612,7 @@ function displayProducts(products) {
                 Agregar
             </button>
         `;
-        
+
         // Event listeners seguros (no inline)
         item.querySelectorAll('.qty-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -462,7 +623,7 @@ function displayProducts(products) {
                 else decreaseQty(id);
             });
         });
-        
+
         const addBtn = item.querySelector('.btn-add');
         if (addBtn && stock > 0) {
             addBtn.addEventListener('click', () => {
@@ -470,15 +631,15 @@ function displayProducts(products) {
                 addToCartWithQty(prodId, nombre, precio, stock, categoria);
             });
         }
-        
+
         // Zoom de imagen
-        const img = item.querySelector('.product-image-small img');
+        const img = item.querySelector('.zoomable-img');
         if (img) {
             img.addEventListener('click', (e) => {
                 openImageZoom(imagen_url, nombre, e);
             });
         }
-        
+
         productList.appendChild(item);
     });
 }
@@ -579,7 +740,6 @@ function addToCartWithQty(productId, name, price, stock, categoria) {
 
     showToast(`${escapeHtml(name)} x${qty} agregado al carrito`);
 
-    // Mostrar sugerencias
     mostrarSugerencias(categoria, name);
 
     productQuantities[productId] = 1;
@@ -623,7 +783,7 @@ function updateCartCount() {
    ============================================ */
 function showCart() {
     if (cart.length === 0) {
-        alert('Tu carrito está vacío');
+        showToast('Tu carrito está vacío');
         return;
     }
 
@@ -675,7 +835,7 @@ async function confirmPurchase() {
     const saleNumber = 'VTA-' + Date.now().toString().slice(-6);
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const productsList = cart.map(item => `${item.qty} x ${item.name} (S/ ${(item.price * item.qty).toFixed(2)})`).join(', ');
-    
+
     const itemsJson = cart.map(item => ({
         nombre: item.name,
         cantidad: item.qty
@@ -696,7 +856,7 @@ async function confirmPurchase() {
         });
 
         if (error) throw error;
-        
+
         if (data && data.success) {
             const saleNumberDisplay = document.getElementById('saleNumber');
             if (saleNumberDisplay) saleNumberDisplay.textContent = saleNumber;
@@ -729,7 +889,6 @@ async function confirmPurchase() {
     }
 }
 
-
 /* ============================================
    WHATSAPP - NOTIFICACIÓN AL ADMIN
    ============================================ */
@@ -743,12 +902,7 @@ function enviarNotificacionWhatsApp(numeroVenta, total) {
         `⏰ ${new Date().toLocaleString('es-PE')}%0A%0A` +
         `Estado: PENDIENTE DE PAGO`;
 
-    // En un entorno real esto se haría desde backend.
-    // Por ahora, si el dispositivo lo permite, abrimos wa.me en background
     const waLink = `https://wa.me/${limpiarNumeroWhatsApp(negocioConfig.whatsapp)}?text=${mensaje}`;
-
-    // Solo notificar si es un dispositivo que puede manejarlo (no ideal en quiosco público)
-    // Mejor: guardar en BD y que el admin tenga un botón para ver notificaciones
     console.log('Notificación WhatsApp lista:', waLink);
 }
 
@@ -764,19 +918,17 @@ function compartirWhatsAppComprobante() {
         showToast('❌ No hay comprobante para compartir');
         return;
     }
-    
-    // Abrir modal personalizado en lugar de prompt
+
     const modalWa = document.getElementById('whatsappModal');
     const inputWa = document.getElementById('whatsappNumberInput');
-    
+
     if (modalWa) {
         modalWa.classList.add('active');
         if (inputWa) {
-            inputWa.value = '51'; // Código de Perú por defecto
+            inputWa.value = '51';
             inputWa.focus();
         }
     } else {
-        // Fallback si no existe el modal
         const numeroDestino = prompt('Ingresa tu número de WhatsApp (ej: 51999123456):');
         if (!numeroDestino) return;
         enviarWhatsApp(numeroDestino);
@@ -785,54 +937,45 @@ function compartirWhatsAppComprobante() {
 
 function enviarWhatsApp(numeroDestino) {
     const numeroLimpio = limpiarNumeroWhatsApp(numeroDestino);
-    
-    // Validar número (mínimo 11 dígitos: 51 + 9 dígitos)
+
     if (numeroLimpio.length < 11) {
         showToast('❌ Número inválido. Debe tener 11 dígitos (51 + 9 dígitos)');
         return;
     }
-    
-    // Agregar código de país si no lo tiene
+
     let numeroFinal = numeroLimpio;
     if (!numeroLimpio.startsWith('51') && numeroLimpio.length === 9) {
         numeroFinal = '51' + numeroLimpio;
     }
-    
-    // Construir el mensaje
+
     const fecha = new Date().toLocaleDateString('es-PE');
     const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     const negocioNombre = negocioConfig.nombre_negocio || 'Ferretería';
-    
+
     let mensaje = `🧾 *COMPROBANTE DE COMPRA*\n\n`;
     mensaje += `🏪 *${negocioNombre}*\n`;
     mensaje += `📋 N°: ${currentSaleNumber}\n`;
     mensaje += `📅 Fecha: ${fecha} ${hora}\n`;
     mensaje += `👤 Cliente: ${clientName || 'Walk-In'}\n\n`;
     mensaje += `*Productos:*\n`;
-    
+
     cart.forEach(item => {
         mensaje += `• ${item.name} x${item.qty} = S/ ${(item.price * item.qty).toFixed(2)}\n`;
     });
-    
+
     mensaje += `\n💰 *TOTAL: S/ ${currentSaleTotal.toFixed(2)}*\n\n`;
     mensaje += `Presente este mensaje en caja para completar su compra.`;
-    
-    // Codificar el mensaje para URL
+
     const mensajeCodificado = encodeURIComponent(mensaje);
     const waLink = `https://wa.me/${numeroFinal}?text=${mensajeCodificado}`;
-    
-    // Cerrar modal si existe
+
     const modalWa = document.getElementById('whatsappModal');
     if (modalWa) modalWa.classList.remove('active');
-    
-    // Intentar abrir WhatsApp directamente
+
     try {
-        // Método 1: window.location (más confiable)
         window.location.href = waLink;
-        
-        // Método 2: setTimeout como respaldo
+
         setTimeout(() => {
-            // Si después de 2 segundos no se abrió, copiar al portapapeles
             navigator.clipboard.writeText(mensaje).then(() => {
                 showToast('📋 Si WhatsApp no se abrió, el mensaje fue copiado. Pégalo en WhatsApp.');
             }).catch(() => {
@@ -841,7 +984,6 @@ function enviarWhatsApp(numeroDestino) {
         }, 2000);
     } catch (error) {
         console.error('Error abriendo WhatsApp:', error);
-        // Fallback: copiar al portapapeles
         navigator.clipboard.writeText(mensaje).then(() => {
             showToast('📋 Mensaje copiado. Abre WhatsApp y pégalo.');
         }).catch(() => {
@@ -934,7 +1076,7 @@ function closeModal() {
    ============================================ */
 function toggleVoice() {
     if (!recognition) {
-        alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
+        showToast('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
         return;
     }
     if (isListening) stopListening(); else startListening();
@@ -959,7 +1101,7 @@ function stopListening() {
 }
 
 /* ============================================
-   ENVIAR PREGUNTA A LA IA
+   ENVIAR PREGUNTA A LA IA (VERSIÓN SEGURA)
    ============================================ */
 async function sendQuestion() {
     if (!rateLimit('ia_question', 5000)) return; // 5 segundos entre preguntas
@@ -1044,79 +1186,75 @@ async function sendQuestion() {
         if (responseProducts) {
             if (productosFiltrados.length > 0) {
                 responseProducts.style.display = 'block';
-
-                // Resetear cantidades del modal
+                responseProducts.innerHTML = '';
                 modalQuantities = {};
 
-               
-               responseProducts.innerHTML = '';
-productosFiltrados.forEach((prod) => {
-    const safeId = 'modal_' + prod.id;
-    modalQuantities[safeId] = 1;
+                productosFiltrados.forEach((prod) => {
+                    const safeId = 'modal_' + prod.id;
+                    modalQuantities[safeId] = 1;
 
-    const item = document.createElement('div');
-    item.className = 'product-item';
-    
-    item.innerHTML = `
-        <div class="product-image-small">
-            ${prod.imagen_url ?
-           `<img src="${escapeHtml(prod.imagen_url)}" alt="${escapeHtml(prod.nombre)}" class="zoomable-img" data-url="${escapeHtml(prod.imagen_url)}" data-name="${escapeHtml(prod.nombre)}">` :
-           `<div class="no-image-small">📦</div>`
-             }
-        </div>
-        <div class="product-info">
-            <div class="product-name">${escapeHtml(prod.nombre)}</div>
-            <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
-            <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
-            <div class="quantity-control">
-                <button class="qty-btn" data-action="decrease" data-safeid="${safeId}">-</button>
-                <span class="qty-display" id="qty-${safeId}">1</span>
-                <button class="qty-btn" data-action="increase" data-safeid="${safeId}">+</button>
-            </div>
-        </div>
-        <button class="btn-add" data-action="add-modal" data-safeid="${safeId}" data-id="${prod.id}" data-name="${escapeHtml(prod.nombre)}" data-price="${prod.precio}" data-stock="${prod.stock}" data-categoria="${escapeHtml(prod.categoria || 'General')}" ${prod.stock === 0 ? 'disabled' : ''}>
-            Agregar
-        </button>
-    `;
+                    const item = document.createElement('div');
+                    item.className = 'product-item';
 
-    // Event listeners seguros
-    const zoomImg = item.querySelector('.zoomable-img');
-    if (zoomImg) {
-        zoomImg.addEventListener('click', (e) => {
-            openImageZoom(zoomImg.dataset.url, zoomImg.dataset.name, e);
-        });
-    }
+                    item.innerHTML = `
+                        <div class="product-image-small">
+                            ${prod.imagen_url ?
+                           `<img src="${escapeHtml(prod.imagen_url)}" alt="${escapeHtml(prod.nombre)}" class="zoomable-img" data-url="${escapeHtml(prod.imagen_url)}" data-name="${escapeHtml(prod.nombre)}">` :
+                           `<div class="no-image-small">📦</div>`
+                             }
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">${escapeHtml(prod.nombre)}</div>
+                            <div class="product-price">S/ ${parseFloat(prod.precio).toFixed(2)}</div>
+                            <div class="product-stock">Stock: ${prod.stock} ${prod.stock > 0 ? 'disponible' : 'agotado'}</div>
+                            <div class="quantity-control">
+                                <button class="qty-btn" data-action="decrease" data-safeid="${safeId}">-</button>
+                                <span class="qty-display" id="qty-${safeId}">1</span>
+                                <button class="qty-btn" data-action="increase" data-safeid="${safeId}">+</button>
+                            </div>
+                        </div>
+                        <button class="btn-add" data-action="add-modal" data-safeid="${safeId}" data-id="${prod.id}" data-name="${escapeHtml(prod.nombre)}" data-price="${prod.precio}" data-stock="${prod.stock}" data-categoria="${escapeHtml(prod.categoria || 'General')}" ${prod.stock === 0 ? 'disabled' : ''}>
+                            Agregar
+                        </button>
+                    `;
 
-    item.querySelectorAll('.qty-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            vibrate(50);
-            const sid = btn.dataset.safeid;
-            if (btn.dataset.action === 'increase') increaseModalQty(sid);
-            else decreaseModalQty(sid);
-        });
-    });
+                    // Zoom de imagen
+                    const zoomImg = item.querySelector('.zoomable-img');
+                    if (zoomImg) {
+                        zoomImg.addEventListener('click', (e) => {
+                            openImageZoom(zoomImg.dataset.url, zoomImg.dataset.name, e);
+                        });
+                    }
 
-    const addBtn = item.querySelector('.btn-add');
-    if (addBtn && prod.stock > 0) {
-        addBtn.addEventListener('click', () => {
-            vibrate(100);
-            addToCartModal(
-                addBtn.dataset.safeid,
-                parseInt(addBtn.dataset.id),
-                addBtn.dataset.name,
-                parseFloat(addBtn.dataset.price),
-                parseInt(addBtn.dataset.stock),
-                addBtn.dataset.categoria
-            );
-        });
-    }
+                    // Botones de cantidad
+                    item.querySelectorAll('.qty-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            vibrate(50);
+                            const sid = btn.dataset.safeid;
+                            if (btn.dataset.action === 'increase') increaseModalQty(sid);
+                            else decreaseModalQty(sid);
+                        });
+                    });
 
-    responseProducts.appendChild(item);
-});
-               
+                    // Botón agregar
+                    const addBtn = item.querySelector('.btn-add');
+                    if (addBtn && prod.stock > 0) {
+                        addBtn.addEventListener('click', () => {
+                            vibrate(100);
+                            addToCartModal(
+                                addBtn.dataset.safeid,
+                                parseInt(addBtn.dataset.id),
+                                addBtn.dataset.name,
+                                parseFloat(addBtn.dataset.price),
+                                parseInt(addBtn.dataset.stock),
+                                addBtn.dataset.categoria
+                            );
+                        });
+                    }
 
+                    responseProducts.appendChild(item);
+                });
 
-               
                 setTimeout(() => {
                     const chatContainer = document.querySelector('.chat-container');
                     if (chatContainer) {
