@@ -96,9 +96,11 @@ async function login() {
     }
 }
 
-async function logout() {
-    await db.auth.signOut();
+function logout() {
+    db.auth.signOut();
+    const emailInput = document.getElementById('adminEmail');
     const passwordInput = document.getElementById('adminPassword');
+    if (emailInput) emailInput.value = '';
     if (passwordInput) passwordInput.value = '';
     const loginError = document.getElementById('loginError');
     if (loginError) loginError.textContent = '';
