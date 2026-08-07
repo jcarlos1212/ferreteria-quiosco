@@ -653,6 +653,7 @@ function showCart() {
    CONFIRMAR COMPRA
    ============================================ */
 async function confirmPurchase() {
+    if (!rateLimit('confirm_purchase', 3000)) return;
     if (cart.length === 0) return;
     if (isProcessingPurchase) return;
     isProcessingPurchase = true;
@@ -668,67 +669,53 @@ async function confirmPurchase() {
     const saleNumber = 'VTA-' + Date.now().toString().slice(-6);
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const productsList = cart.map(item => `${item.qty} x ${item.name} (S/ ${(item.price * item.qty).toFixed(2)})`).join(', ');
+    
+    // Preparar items para la función RPC
+    const itemsJson = cart.map(item => ({
+        nombre: item.name,
+        cantidad: item.qty
+    }));
 
     currentSaleNumber = saleNumber;
     currentSaleTotal = total;
 
-    const saleNumberDisplay = document.getElementById('saleNumber');
-    if (saleNumberDisplay) saleNumberDisplay.textContent = saleNumber;
-
-    const confirmationDetails = document.getElementById('confirmationDetails');
-    if (confirmationDetails) {
-        confirmationDetails.innerHTML = `
-            <strong>Cliente:</strong> ${escapeHtml(clientName)}<br>
-            <strong>Productos:</strong> ${escapeHtml(productsList)}<br>
-            <strong>Total a pagar:</strong> S/ ${total.toFixed(2)}
-        `;
-    }
-
-    showScreen('screen-confirmation');
-
     try {
-        const { error: ventaError } = await db
-            .from('ventas')
-            .insert([{
-                numero_venta: saleNumber,
-                fecha: new Date().toISOString().split('T')[0],
-                hora: new Date().toTimeString().split(' ')[0],
-                cliente: clientName,
-                productos: productsList,
-                total: total,
-                estado: 'Pendiente'
-            }]);
+        // ✅ TRANSACCIÓN ATÓMICA via RPC
+        const { data, error } = await db.rpc('registrar_venta_con_stock', {
+            p_numero_venta: saleNumber,
+            p_fecha: new Date().toISOString().split('T')[0],
+            p_hora: new Date().toTimeString().split(' ')[0],
+            p_cliente: clientName,
+            p_productos: productsList,
+            p_total: total,
+            p_items: itemsJson
+        });
 
-        if (ventaError) throw ventaError;
+        if (error) throw error;
+        
+        if (data && data.success) {
+            // Mostrar confirmación
+            const saleNumberDisplay = document.getElementById('saleNumber');
+            if (saleNumberDisplay) saleNumberDisplay.textContent = saleNumber;
 
-        for (const item of cart) {
-            const { data: productoData, error: productoError } = await db
-                .from('productos')
-                .select('stock')
-                .eq('nombre', item.name)
-                .single();
-
-            if (productoError) continue;
-
-            const nuevoStock = productoData.stock - item.qty;
-            if (nuevoStock < 0) continue;
-
-            const { error: updateError } = await db
-                .from('productos')
-                .update({ stock: nuevoStock })
-                .eq('nombre', item.name);
-
-            if (!updateError) {
-                console.log(`Stock actualizado: ${item.name} → ${nuevoStock}`);
+            const confirmationDetails = document.getElementById('confirmationDetails');
+            if (confirmationDetails) {
+                confirmationDetails.innerHTML = `
+                    <strong>Cliente:</strong> ${escapeHtml(clientName)}<br>
+                    <strong>Productos:</strong> ${escapeHtml(productsList)}<br>
+                    <strong>Total a pagar:</strong> S/ ${total.toFixed(2)}
+                `;
             }
+
+            showScreen('screen-confirmation');
+            enviarNotificacionWhatsApp(saleNumber, total);
+        } else {
+            throw new Error(data?.error || 'Error en la transacción');
         }
 
-        // Notificar por WhatsApp al admin si está configurado
-        enviarNotificacionWhatsApp(saleNumber, total);
-
     } catch (error) {
-        console.error('Error guardando venta:', error);
-        showToast('⚠️ Error al guardar la venta. Acércate a caja.');
+        console.error('Error:', error);
+        showToast('⚠️ Error al procesar la compra: ' + error.message);
     } finally {
         if (confirmBtn) {
             confirmBtn.disabled = false;
