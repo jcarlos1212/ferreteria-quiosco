@@ -347,7 +347,7 @@ async function searchProducts() {
 }
 
 /* ============================================
-   MOSTRAR PRODUCTOS
+   MOSTRAR PRODUCTOS (VERSIÓN SEGURA - sin onclick inline)
    ============================================ */
 function displayProducts(products) {
     const productList = document.getElementById('productList');
@@ -358,38 +358,72 @@ function displayProducts(products) {
         return;
     }
 
-    productList.innerHTML = products.map((prod) => {
-        const nombre = escapeHtml(prod.nombre || prod.name || 'Producto sin nombre');
+    productList.innerHTML = '';
+    
+    products.forEach((prod) => {
+        const nombre = prod.nombre || prod.name || 'Producto sin nombre';
         const precio = prod.precio || prod.price || 0;
         const stock = prod.stock || 0;
-        const unidad = escapeHtml(prod.unidad || prod.unit || 'unid.');
+        const unidad = prod.unidad || prod.unit || 'unid.';
         const imagen_url = prod.imagen_url || prod.imagen || null;
         const prodId = prod.id || 0;
-        const categoria = escapeHtml(prod.categoria || 'General');
+        const categoria = prod.categoria || 'General';
 
-        return `
-        <div class="product-item" data-categoria="${categoria}">
+        const item = document.createElement('div');
+        item.className = 'product-item';
+        item.dataset.categoria = categoria;
+        
+        item.innerHTML = `
             <div class="product-image-small">
                 ${imagen_url ?
-                 `<img src="${escapeHtml(imagen_url)}" alt="${nombre}" onclick="openImageZoom('${escapeHtml(imagen_url)}', '${nombre.replace(/'/g, "\\'")}', event)">` :
+                 `<img src="${escapeHtml(imagen_url)}" alt="${escapeHtml(nombre)}">` :
                  `<div class="no-image-small">📦</div>`
                  }
             </div>
             <div class="product-info">
-                <div class="product-name">${nombre}</div>
+                <div class="product-name">${escapeHtml(nombre)}</div>
                 <div class="product-price">S/ ${parseFloat(precio).toFixed(2)}</div>
                 <div class="product-stock">Stock: ${stock} ${stock > 0 ? 'disponible' : 'agotado'}</div>
                 <div class="quantity-control">
-                    <button class="qty-btn" onclick="vibrate(50); decreaseQty(${prodId})">-</button>
+                    <button class="qty-btn" data-action="decrease" data-id="${prodId}">-</button>
                     <span class="qty-display" id="qty-${prodId}">1</span>
-                    <button class="qty-btn" onclick="vibrate(50); increaseQty(${prodId})">+</button>
+                    <button class="qty-btn" data-action="increase" data-id="${prodId}">+</button>
                 </div>
             </div>
-            <button class="btn-add" onclick="vibrate(100); addToCartWithQty(${prodId}, '${nombre.replace(/'/g, "\\'")}', ${precio}, ${stock}, '${categoria.replace(/'/g, "\\'")}')" ${stock === 0 ? 'disabled style="background:#999"' : ''}>
+            <button class="btn-add" data-action="add" data-id="${prodId}" ${stock === 0 ? 'disabled style="background:#999"' : ''}>
                 Agregar
             </button>
-        </div>
-    `}).join('');
+        `;
+        
+        // Event listeners seguros (no inline)
+        item.querySelectorAll('.qty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                vibrate(50);
+                const action = btn.dataset.action;
+                const id = parseInt(btn.dataset.id);
+                if (action === 'increase') increaseQty(id);
+                else decreaseQty(id);
+            });
+        });
+        
+        const addBtn = item.querySelector('.btn-add');
+        if (addBtn && stock > 0) {
+            addBtn.addEventListener('click', () => {
+                vibrate(100);
+                addToCartWithQty(prodId, nombre, precio, stock, categoria);
+            });
+        }
+        
+        // Zoom de imagen
+        const img = item.querySelector('.product-image-small img');
+        if (img) {
+            img.addEventListener('click', (e) => {
+                openImageZoom(imagen_url, nombre, e);
+            });
+        }
+        
+        productList.appendChild(item);
+    });
 }
 
 /* ============================================
