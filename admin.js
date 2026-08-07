@@ -15,6 +15,9 @@ let allVentas = [];
 let allProducts = [];
 let currentEditProductId = null;
 let negocioConfig = {};
+let ventasChartInstance = null;
+let rentablesChartInstance = null;
+let currentAnalyticsDays = 30;
 const PLANES = {
     basico: { nombre: 'Básico', max_productos: 50, label: '50 productos' },
     profesional: { nombre: 'Profesional', max_productos: 200, label: '200 productos' },
@@ -51,6 +54,36 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // ============================================
+    // NOTIFICACIONES REALTIME - NUEVAS VENTAS
+    // ============================================
+    const channel = db.channel('nuevas-ventas')
+        .on('postgres_changes', 
+            { event: 'INSERT', schema: 'public', table: 'ventas' },
+            (payload) => {
+                const venta = payload.new;
+                showToast(`🔔 Nueva venta: ${venta.numero_venta} - S/ ${parseFloat(venta.total).toFixed(2)}`);
+
+                // Reproducir sonido de notificación
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+
+                // Refrescar datos
+                loadVentas();
+                loadAnalytics(currentAnalyticsDays);
+            }
+        )
+        .subscribe();
 });
 
 /* ============================================
@@ -109,13 +142,13 @@ function logout() {
 
 
 
-//function logout() {
-//    const passwordInput = document.getElementById('adminPassword');
-//    if (passwordInput) passwordInput.value = '';
-//    const loginError = document.getElementById('loginError');
-//    if (loginError) loginError.textContent = '';
-//    showScreen('login-screen');
-//}
+function logout() {
+    const passwordInput = document.getElementById('adminPassword');
+    if (passwordInput) passwordInput.value = '';
+    const loginError = document.getElementById('loginError');
+    if (loginError) loginError.textContent = '';
+    showScreen('login-screen');
+}
 
 /* ============================================
 NAVEGACIÓN
@@ -135,7 +168,8 @@ async function loadDashboard() {
         loadStockBajo(),
         loadTopProductos(),
         cargarConfigNegocio(),
-        cargarProductosAdmin()
+        cargarProductosAdmin(),
+        loadAnalytics(30)
     ]);
 }
 
@@ -866,4 +900,145 @@ function showToast(message) {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
+}
+
+
+/* ============================================
+   ANALYTICS DASHBOARD
+   ============================================ */
+async function loadAnalytics(dias = 30) {
+    currentAnalyticsDays = dias;
+
+    // Actualizar botones activos
+    document.querySelectorAll('.analytics-filters .btn-filter').forEach(btn => {
+        btn.classList.remove('active');
+        if (parseInt(btn.dataset.analytics) === dias) btn.classList.add('active');
+    });
+
+    await Promise.all([
+        loadStatsGenerales(dias),
+        loadVentasPorDia(dias),
+        loadProductosRentables()
+    ]);
+}
+
+async function loadStatsGenerales(dias) {
+    try {
+        const { data, error } = await db.rpc('get_dashboard_stats', { p_dias: dias });
+        if (error) throw error;
+
+        if (data) {
+            const elTotal = document.getElementById('totalVentas');
+            const elTicket = document.getElementById('ticketPromedio');
+            const elConversion = document.getElementById('tasaConversion');
+            const elProductos = document.getElementById('productosVendidos');
+
+            if (elTotal) elTotal.textContent = `S/ ${parseFloat(data.total_ventas || 0).toFixed(2)}`;
+            if (elTicket) elTicket.textContent = `S/ ${parseFloat(data.ticket_promedio || 0).toFixed(2)}`;
+            if (elConversion) elConversion.textContent = `${parseFloat(data.tasa_conversion || 0).toFixed(1)}%`;
+            if (elProductos) elProductos.textContent = Math.round(data.productos_vendidos || 0);
+        }
+    } catch (error) {
+        console.error('Error cargando stats:', error);
+    }
+}
+
+async function loadVentasPorDia(dias) {
+    try {
+        const { data, error } = await db.rpc('get_ventas_por_dia', { p_dias: dias });
+        if (error) throw error;
+
+        const ctx = document.getElementById('ventasChart');
+        if (!ctx) return;
+
+        const labels = data.map(d => {
+            const fecha = new Date(d.fecha);
+            return `${fecha.getDate()}/${fecha.getMonth()+1}`;
+        });
+        const valores = data.map(d => parseFloat(d.total));
+
+        if (ventasChartInstance) ventasChartInstance.destroy();
+
+        ventasChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ventas (S/)',
+                    data: valores,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#667eea',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#e2e8f0' },
+                        ticks: {
+                            callback: function(value) {
+                                return 'S/ ' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error cargando gráfico ventas:', error);
+    }
+}
+
+async function loadProductosRentables() {
+    try {
+        const { data, error } = await db.rpc('get_productos_rentables', { p_limite: 5 });
+        if (error) throw error;
+
+        const ctx = document.getElementById('rentablesChart');
+        if (!ctx) return;
+
+        const labels = data.map(d => d.nombre.substring(0, 15) + (d.nombre.length > 15 ? '...' : ''));
+        const valores = data.map(d => parseFloat(d.total));
+
+        if (rentablesChartInstance) rentablesChartInstance.destroy();
+
+        rentablesChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: valores,
+                    backgroundColor: [
+                        '#667eea', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 11 }, boxWidth: 12 }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error cargando gráfico rentables:', error);
+    }
 }
