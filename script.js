@@ -1026,10 +1026,10 @@ function printTicket() {
     const fecha = new Date().toLocaleDateString('es-PE');
     const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     const productsList = cart.length > 0 ? cart : [];
-    const negocioNombre = escapeHtml(negocioConfig.nombre_negocio || 'FERRETERÍA EL CONSTRUCTOR');
+    const negocioNombre = escapeHtml(negocioConfig.nombre_negocio || 'FERRETERIA EL CONSTRUCTOR');
 
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>Comprobante ${currentSaleNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Courier New',monospace;padding:20px;max-width:300px;margin:0 auto;background:white;color:#000}.header{text-align:center;border-bottom:2px dashed #000;padding-bottom:15px;margin-bottom:15px}.header h1{font-size:16px;margin-bottom:5px}.header h2{font-size:12px;font-weight:normal}.header p{font-size:11px;margin-top:5px}.info{font-size:11px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.info p{margin-bottom:3px}.products{font-size:11px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.product-row{display:flex;justify-content:space-between;margin-bottom:5px}.product-name{flex:1}.product-qty{width:40px;text-align:center}.product-price{width:70px;text-align:right}.totals{font-size:13px;margin-bottom:15px}.total-row{display:flex;justify-content:space-between;margin-bottom:5px}.total-final{font-size:16px;font-weight:bold;border-top:2px solid #000;padding-top:10px;margin-top:10px}.footer{text-align:center;font-size:10px;border-top:2px dashed #000;padding-top:15px}.footer p{margin-bottom:5px}@media print{body{padding:10px}}</style></head><body><div class="header"><h1>${negocioNombre}</h1><p>${escapeHtml(negocioConfig.direccion || 'Av. Principal 123')}</p><p>Tel: ${escapeHtml(negocioConfig.telefono || '(01) 234-5678')}</p></div><div class="info"><p><strong>COMPROBANTE DE COMPRA</strong></p><p>N°: ${currentSaleNumber}</p><p>Fecha: ${fecha}</p><p>Hora: ${hora}</p><p>Cliente: ${escapeHtml(clientName || 'Walk-In')}</p><p>Estado: PENDIENTE DE PAGO</p></div><div class="products"><div class="product-row" style="font-weight:bold;border-bottom:1px solid #000;padding-bottom:5px;margin-bottom:5px"><span class="product-name">Producto</span><span class="product-qty">Cant</span><span class="product-price">Total</span></div>${productsList.map(item => `<div class="product-row"><span class="product-name">${escapeHtml(item.name)}</span><span class="product-qty">${item.qty}</span><span class="product-price">S/ ${(item.price * item.qty).toFixed(2)}</span></div>`).join('')}</div><div class="totals"><div class="total-row"><span>Sub Total:</span><span>S/ ${(currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row"><span>IGV (18%):</span><span>S/ ${(currentSaleTotal - currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row total-final"><span>TOTAL:</span><span>S/ ${currentSaleTotal.toFixed(2)}</span></div></div><div class="footer"><p>Presente este comprobante en caja</p><p>para completar su compra</p><p style="margin-top:10px">¡Gracias por su compra!</p></div><script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},500);},500)}</script></body></html>`);
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>Comprobante ${currentSaleNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Courier New',monospace;padding:20px;max-width:300px;margin:0 auto;background:white;color:#000}.header{text-align:center;border-bottom:2px dashed #000;padding-bottom:15px;margin-bottom:15px}.header h1{font-size:16px;margin-bottom:5px}.header h2{font-size:12px;font-weight:normal}.header p{font-size:11px;margin-top:5px}.info{font-size:11px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.info p{margin-bottom:3px}.products{font-size:11px;margin-bottom:15px;border-bottom:2px dashed #000;padding-bottom:10px}.product-row{display:flex;justify-content:space-between;margin-bottom:5px}.product-name{flex:1}.product-qty{width:40px;text-align:center}.product-price{width:70px;text-align:right}.totals{font-size:13px;margin-bottom:15px}.total-row{display:flex;justify-content:space-between;margin-bottom:5px}.total-final{font-size:16px;font-weight:bold;border-top:2px solid #000;padding-top:10px;margin-top:10px}.footer{text-align:center;font-size:10px;border-top:2px dashed #000;padding-top:15px}.footer p{margin-bottom:5px}@media print{body{padding:10px}}</style></head><body><div class="header"><h1>${negocioNombre}</h1><p>${escapeHtml(negocioConfig.direccion || 'Av. Principal 123')}</p><p>Tel: ${escapeHtml(negocioConfig.telefono || '(01) 234-5678')}</p></div><div class="info"><p><strong>COMPROBANTE DE COMPRA</strong></p><p>N°: ${currentSaleNumber}</p><p>Fecha: ${fecha}</p><p>Hora: ${hora}</p><p>Cliente: ${escapeHtml(clientName || 'Walk-In')}</p><p>Estado: PENDIENTE DE PAGO</p>${cuponAplicado ? `<p>Cupon: ${escapeHtml(cuponAplicado.codigo)}</p><p>Descuento: S/ ${descuentoTotal.toFixed(2)}</p>` : ''}</div><div class="products"><div class="product-row" style="font-weight:bold;border-bottom:1px solid #000;padding-bottom:5px;margin-bottom:5px"><span class="product-name">Producto</span><span class="product-qty">Cant</span><span class="product-price">Total</span></div>${productsList.map(item => `<div class="product-row"><span class="product-name">${escapeHtml(item.name)}</span><span class="product-qty">${item.qty}</span><span class="product-price">S/ ${(item.price * item.qty).toFixed(2)}</span></div>`).join('')}</div><div class="totals"><div class="total-row"><span>Sub Total:</span><span>S/ ${(currentSaleTotal / 1.18).toFixed(2)}</span></div><div class="total-row"><span>IGV (18%):</span><span>S/ ${(currentSaleTotal - currentSaleTotal / 1.18).toFixed(2)}</span></div>${cuponAplicado ? `<div class="total-row"><span>Descuento:</span><span>-S/ ${descuentoTotal.toFixed(2)}</span></div>` : ''}<div class="total-row total-final"><span>TOTAL:</span><span>S/ ${currentSaleTotal.toFixed(2)}</span></div></div><div class="footer"><p>Presente este comprobante en caja</p><p>para completar su compra</p><p style="margin-top:10px">¡Gracias por su compra!</p></div><script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},500);},500)}<\/script></body></html>`);
     printWindow.document.close();
 }
 
@@ -1055,7 +1055,7 @@ function openModal(module) {
     const titles = {
         'cotizar': 'Cotizar Productos',
         'precio': 'Consultar Precio',
-        'asesor': 'Asesoría IA'
+        'asesor': 'Asesoria IA'
     };
 
     const modalTitle = document.getElementById('modalTitle');
@@ -1097,14 +1097,14 @@ function stopListening() {
     const voiceBtn = document.getElementById('voiceBtn');
     if (voiceBtn) voiceBtn.classList.remove('listening');
     const userInput = document.getElementById('userInput');
-    if (userInput) userInput.placeholder = 'Escribe o usa el micrófono...';
+    if (userInput) userInput.placeholder = 'Escribe o usa el microfono...';
 }
 
 /* ============================================
-   ENVIAR PREGUNTA A LA IA (VERSIÓN SEGURA)
+   ENVIAR PREGUNTA A LA IA
    ============================================ */
 async function sendQuestion() {
-    if (!rateLimit('ia_question', 5000)) return; // 5 segundos entre preguntas
+    if (!rateLimit('ia_question', 5000)) return;
     const userInput = document.getElementById('userInput');
     if (!userInput) return;
 
@@ -1117,7 +1117,7 @@ async function sendQuestion() {
     const sendBtn = document.getElementById('sendBtn');
 
     if (responseDiv) responseDiv.style.display = 'block';
-    if (responseContent) responseContent.innerHTML = '<div class="loading">🤖 La IA está pensando...</div>';
+    if (responseContent) responseContent.innerHTML = '<div class="loading">🤖 La IA esta pensando...</div>';
     if (responseActions) responseActions.style.display = 'none';
     if (sendBtn) sendBtn.disabled = true;
 
@@ -1200,8 +1200,7 @@ async function sendQuestion() {
                         <div class="product-image-small">
                             ${prod.imagen_url ?
                            `<img src="${escapeHtml(prod.imagen_url)}" alt="${escapeHtml(prod.nombre)}" class="zoomable-img" data-url="${escapeHtml(prod.imagen_url)}" data-name="${escapeHtml(prod.nombre)}">` :
-                           `<div class="no-image-small">📦</div>`
-                             }
+                           `<div class="no-image-small">📦</div>`}
                         </div>
                         <div class="product-info">
                             <div class="product-name">${escapeHtml(prod.nombre)}</div>
@@ -1218,7 +1217,6 @@ async function sendQuestion() {
                         </button>
                     `;
 
-                    // Zoom de imagen
                     const zoomImg = item.querySelector('.zoomable-img');
                     if (zoomImg) {
                         zoomImg.addEventListener('click', (e) => {
@@ -1226,7 +1224,6 @@ async function sendQuestion() {
                         });
                     }
 
-                    // Botones de cantidad
                     item.querySelectorAll('.qty-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             vibrate(50);
@@ -1236,7 +1233,6 @@ async function sendQuestion() {
                         });
                     });
 
-                    // Botón agregar
                     const addBtn = item.querySelector('.btn-add');
                     if (addBtn && prod.stock > 0) {
                         addBtn.addEventListener('click', () => {
@@ -1274,7 +1270,7 @@ async function sendQuestion() {
     } catch (error) {
         console.error('Error:', error);
         if (responseContent) {
-            responseContent.innerHTML = '<div class="error">❌ Error de conexión con la IA. Intenta de nuevo.</div>';
+            responseContent.innerHTML = '<div class="error">❌ Error de conexion con la IA. Intenta de nuevo.</div>';
         }
     } finally {
         if (sendBtn) sendBtn.disabled = false;
@@ -1330,14 +1326,14 @@ function speakResponse() {
 }
 
 /* ============================================
-   IMPRIMIR COTIZACIÓN
+   IMPRIMIR COTIZACION
    ============================================ */
 function printQuote() {
     if (!currentResponse) return;
 
     const fecha = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
     const numeroCotizacion = 'COT-' + Date.now().toString().slice(-6);
-    const negocioNombre = escapeHtml(negocioConfig.nombre_negocio || 'Ferretería El Constructor');
+    const negocioNombre = escapeHtml(negocioConfig.nombre_negocio || 'Ferreteria El Constructor');
 
     const cartItems = cart.map(item => ({
         name: item.name,
@@ -1357,7 +1353,7 @@ function printQuote() {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Cotización ${numeroCotizacion}</title>
+            <title>Cotizacion ${numeroCotizacion}</title>
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
                 body { padding: 40px; background: white; color: #333; }
@@ -1388,7 +1384,7 @@ function printQuote() {
                 <div>
                     <div class="logo">FC</div>
                     <div class="company-name">${negocioNombre}</div>
-                    <div class="tagline">Tu socio en construcción</div>
+                    <div class="tagline">Tu socio en construccion</div>
                 </div>
                 <div class="quote-info">
                     <div class="quote-number">N°: ${numeroCotizacion}</div>
@@ -1426,7 +1422,7 @@ function printQuote() {
             <div class="footer">
                 <div>Gracias por preferirnos</div>
                 <div class="phone">📞 ${escapeHtml(negocioConfig.telefono || '(01) 234-5678')}</div>
-                <div style="margin-top: 10px; font-size: 12px;">Esta cotización tiene una validez de 7 días</div>
+                <div style="margin-top: 10px; font-size: 12px;">Esta cotizacion tiene una validez de 7 dias</div>
             </div>
             <script>
                 window.onload = function() {
@@ -1483,7 +1479,7 @@ function toggleTheme() {
 }
 
 /* ============================================
-   CARGAR CONFIGURACIÓN DEL NEGOCIO
+   CARGAR CONFIGURACION DEL NEGOCIO
    ============================================ */
 async function cargarConfigDesdeQuiosco() {
     try {
@@ -1493,7 +1489,7 @@ async function cargarConfigDesdeQuiosco() {
             .single();
 
         if (error) {
-            console.log('No hay configuración personalizada');
+            console.log('No hay configuracion personalizada');
             return;
         }
 
@@ -1519,6 +1515,27 @@ async function cargarConfigDesdeQuiosco() {
         }
     } catch (error) {
         console.log('Error cargando config:', error.message);
+    }
+}
+
+/* NUEVO: Cargar configuracion de pagos QR */
+async function cargarConfigPago() {
+    try {
+        const { data, error } = await db
+            .from('config_pagos')
+            .select('*')
+            .single();
+        
+        if (error) {
+            console.log('No hay config de pagos');
+            return;
+        }
+        
+        if (data) {
+            configPago = data;
+        }
+    } catch (error) {
+        console.log('Error cargando config pagos:', error.message);
     }
 }
 
