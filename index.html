@@ -167,6 +167,33 @@
                 <p class="confirmation-note">Acércate a caja con este comprobante para completar tu compra</p>
                 <button class="btn-metal success" id="btnPrintTicket">🖨️ Imprimir Comprobante</button>
                 <button class="btn-metal btn-whatsapp" id="btnShareWhatsApp">📱 Enviar a mi WhatsApp</button>
+                
+                <!-- PAGO QR -->
+                <div id="qrPaymentSection" style="display:none; margin: 20px 0; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 2px solid #48bb78;">
+                    <h3 style="color: #48bb78; margin-bottom: 15px; font-size: 20px;">💳 Paga aquí con QR</h3>
+                    <div id="qrPaymentContent" style="text-align: center;">
+                        <p style="color: #a0aec0; margin-bottom: 15px;">Escanea el código QR con tu app de Yape o Plin</p>
+                        <div id="qrNumbers" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px;">
+                            <div id="yapeInfo" style="display:none; background: #742284; color: white; padding: 15px; border-radius: 12px; min-width: 140px;">
+                                <div style="font-size: 28px; margin-bottom: 5px;">📱</div>
+                                <div style="font-weight: bold; font-size: 16px;">Yape</div>
+                                <div id="yapeNumber" style="font-size: 14px; margin-top: 5px;"></div>
+                                <div id="yapeTitular" style="font-size: 12px; opacity: 0.9;"></div>
+                            </div>
+                            <div id="plinInfo" style="display:none; background: #0077b6; color: white; padding: 15px; border-radius: 12px; min-width: 140px;">
+                                <div style="font-size: 28px; margin-bottom: 5px;">📱</div>
+                                <div style="font-weight: bold; font-size: 16px;">Plin</div>
+                                <div id="plinNumber" style="font-size: 14px; margin-top: 5px;"></div>
+                                <div id="plinTitular" style="font-size: 12px; opacity: 0.9;"></div>
+                            </div>
+                        </div>
+                        <p style="color: #e2e8f0; font-size: 14px; margin-top: 10px;">
+                            💡 <strong>Total a pagar: S/ <span id="qrTotalAmount">0.00</span></strong><br>
+                            <span style="color: #a0aec0; font-size: 13px;">Después de pagar, acércate a caja para que el vendedor confirme tu compra.</span>
+                        </p>
+                    </div>
+                </div>
+
                 <button class="btn-metal" id="btnBackToStart" style="margin-top: 10px;">Volver al inicio</button>
             </div>
         </div>

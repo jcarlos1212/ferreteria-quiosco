@@ -1414,3 +1414,165 @@ async function loadDashboard() {
         loadConfigPagos()
     ]);
 }
+
+
+/* ============================================
+   NUEVO: CRUD DE MOVIMIENTOS DE INVENTARIO
+   ============================================ */
+
+function openMovimientoModal() {
+    const modal = document.getElementById('movimientoModal');
+    const select = document.getElementById('movProducto');
+
+    // Cargar productos en el select
+    if (select) {
+        select.innerHTML = '<option value="">Selecciona un producto</option>';
+        allProducts.forEach(p => {
+            if (p.estado === 'activo') {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = `${p.nombre} (Stock: ${p.stock})`;
+                select.appendChild(option);
+            }
+        });
+    }
+
+    document.getElementById('movimientoForm').reset();
+    document.getElementById('movTipo').value = 'entrada';
+
+    if (modal) modal.classList.add('active');
+}
+
+function closeMovimientoModal() {
+    const modal = document.getElementById('movimientoModal');
+    if (modal) modal.classList.remove('active');
+}
+
+async function guardarMovimiento() {
+    const productoId = parseInt(document.getElementById('movProducto').value);
+    const tipo = document.getElementById('movTipo').value;
+    const cantidad = parseInt(document.getElementById('movCantidad').value);
+    const motivo = document.getElementById('movMotivo').value.trim();
+
+    if (!productoId || isNaN(cantidad) || cantidad < 1) {
+        alert('Selecciona un producto y una cantidad válida');
+        return;
+    }
+
+    try {
+        // 1. Insertar movimiento
+        const { error: movError } = await db
+            .from('movimientos_stock')
+            .insert([{
+                producto_id: productoId,
+                tipo: tipo,
+                cantidad: cantidad,
+                motivo: motivo || `Movimiento manual: ${tipo}`,
+                created_at: new Date().toISOString()
+            }]);
+
+        if (movError) throw movError;
+
+        // 2. Actualizar stock del producto
+        const producto = allProducts.find(p => p.id === productoId);
+        let nuevoStock = producto.stock;
+
+        if (tipo === 'entrada') {
+            nuevoStock += cantidad;
+        } else if (tipo === 'salida') {
+            nuevoStock -= cantidad;
+        } else if (tipo === 'ajuste') {
+            nuevoStock = cantidad; // Ajuste = setear stock exacto
+        }
+
+        if (nuevoStock < 0) nuevoStock = 0;
+
+        const { error: updateError } = await db
+            .from('productos')
+            .update({ stock: nuevoStock, updated_at: new Date().toISOString() })
+            .eq('id', productoId);
+
+        if (updateError) throw updateError;
+
+        showToast('✅ Movimiento registrado y stock actualizado');
+        closeMovimientoModal();
+
+        // Refrescar todo
+        await Promise.all([
+            loadMovimientos(),
+            cargarProductosAdmin(),
+            loadStockBajo()
+        ]);
+
+    } catch (error) {
+        console.error('Error guardando movimiento:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+/* ============================================
+   FIX: FILTRAR MOVIMIENTOS (con botón y oninput)
+   ============================================ */
+function filtrarMovimientos() {
+    const searchInput = document.getElementById('searchMovimiento');
+    const tipoSelect = document.getElementById('filterTipoMov');
+
+    const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const tipo = tipoSelect ? tipoSelect.value : 'todos';
+
+    let filtered = allMovimientos;
+
+    if (search) {
+        filtered = filtered.filter(m => 
+            (m.productos?.nombre || '').toLowerCase().includes(search) ||
+            (m.motivo || '').toLowerCase().includes(search)
+        );
+    }
+
+    if (tipo !== 'todos') {
+        filtered = filtered.filter(m => m.tipo === tipo);
+    }
+
+    renderMovimientos(filtered);
+}
+
+/* ============================================
+   FIX: RENDER MOVIMIENTOS (manejo de nulls)
+   ============================================ */
+function renderMovimientos(movimientos) {
+    const movementsList = document.getElementById('movementsList');
+    if (!movementsList) return;
+
+    if (!movimientos || movimientos.length === 0) {
+        movementsList.innerHTML = '<div class="empty-state">No hay movimientos registrados</div>';
+        return;
+    }
+
+    movementsList.innerHTML = movimientos.map(m => {
+        const nombreProducto = m.productos?.nombre || 'Producto eliminado';
+        const tipoClass = m.tipo === 'entrada' ? 'movement-in' : (m.tipo === 'salida' ? 'movement-out' : 'movement-adjust');
+        const tipoIcon = m.tipo === 'entrada' ? '📥' : (m.tipo === 'salida' ? '📤' : '⚖️');
+        const fechaStr = m.created_at ? new Date(m.created_at).toLocaleString('es-PE') : 'Fecha desconocida';
+        const motivoStr = m.motivo || 'Sin motivo';
+        const cantidad = m.cantidad || 0;
+        const signo = m.tipo === 'entrada' ? '+' : (m.tipo === 'salida' ? '-' : '');
+
+        return `
+            <div class="movement-item ${tipoClass}">
+                <div class="movement-info">
+                    <div class="movement-product">${escapeHtml(nombreProducto)}</div>
+                    <div class="movement-meta">
+                        <span class="movement-type">${tipoIcon} ${(m.tipo || 'ajuste').toUpperCase()}</span>
+                        <span class="movement-date">${fechaStr}</span>
+                    </div>
+                    <div class="movement-reason">${escapeHtml(motivoStr)}</div>
+                </div>
+                <div class="movement-qty">
+                    <span class="movement-amount ${m.tipo === 'entrada' ? 'positive' : (m.tipo === 'salida' ? 'negative' : '')}">
+                        ${signo}${cantidad}
+                    </span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}

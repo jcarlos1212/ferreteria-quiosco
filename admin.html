@@ -189,6 +189,7 @@
                         <option value="salida">Salidas</option>
                         <option value="ajuste">Ajustes</option>
                     </select>
+                    <button class="btn-metal success btn-new-product" onclick="openMovimientoModal()">➕ Nuevo Movimiento</button>
                 </div>
                 <div class="movements-list" id="movementsList">
                     <div class="empty-state">Cargando movimientos...</div>
@@ -426,6 +427,47 @@
                 <div class="modal-actions">
                     <button type="button" class="btn-metal secondary" onclick="closeCuponModal()">Cancelar</button>
                     <button type="submit" class="btn-metal success">💾 Guardar Cupon</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal de Movimiento de Inventario (Crear) -->
+    <div id="movimientoModal" class="modal">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h3 class="modal-title" id="movimientoModalTitle">➕ Nuevo Movimiento</h3>
+                <button class="btn-close" onclick="closeMovimientoModal()">✕</button>
+            </div>
+            <form id="movimientoForm" onsubmit="event.preventDefault(); guardarMovimiento();">
+                <div class="form-group">
+                    <label>Producto *</label>
+                    <select id="movProducto" required style="width:100%; padding:10px 14px; border:2px solid #e2e8f0; border-radius:8px; background:#f8fafc; color:#1e293b; font-size:14px;">
+                        <option value="">Selecciona un producto</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipo *</label>
+                        <select id="movTipo" required style="width:100%; padding:10px 14px; border:2px solid #e2e8f0; border-radius:8px; background:#f8fafc; color:#1e293b; font-size:14px;">
+                            <option value="entrada">📥 Entrada</option>
+                            <option value="salida">📤 Salida</option>
+                            <option value="ajuste">⚖️ Ajuste</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad *</label>
+                        <input type="number" id="movCantidad" min="1" required placeholder="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Motivo / Referencia</label>
+                    <input type="text" id="movMotivo" placeholder="Ej: Compra a proveedor, rotura, ajuste de inventario...">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-metal secondary" onclick="closeMovimientoModal()">Cancelar</button>
+                    <button type="submit" class="btn-metal success">💾 Guardar Movimiento</button>
                 </div>
             </form>
         </div>

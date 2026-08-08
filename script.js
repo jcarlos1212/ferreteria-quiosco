@@ -24,6 +24,9 @@ let productQuantities = {};
 let modalQuantities = {};
 let allProductsCache = [];
 let negocioConfig = {};
+let configPago = {};
+let cuponAplicado = null;
+let descuentoTotal = 0;
 
 /* ============================================
    RATE LIMITING Y DEBOUNCE (Seguridad)
@@ -870,6 +873,12 @@ async function confirmPurchase() {
                 `;
             }
 
+            // Crear movimientos de salida automáticos
+            await crearMovimientosVenta(itemsJson);
+
+            // Mostrar opción de pago QR si está configurado
+            mostrarSeccionPagoQR(total);
+
             showScreen('screen-confirmation');
             enviarNotificacionWhatsApp(saleNumber, total);
         } else {
@@ -1014,6 +1023,80 @@ function llamarVendedor() {
     const newWindow = window.open(waLink, '_blank');
     if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
         showToast('📋 Abriendo WhatsApp... Si no funciona, acércate a caja.');
+    }
+}
+
+
+/* ============================================
+   MOVIMIENTOS DE STOCK AUTOMÁTICOS
+   ============================================ */
+async function crearMovimientosVenta(items) {
+    try {
+        for (const item of items) {
+            // Buscar el producto_id por nombre
+            const { data: prodData } = await db
+                .from('productos')
+                .select('id')
+                .eq('nombre', item.nombre)
+                .single();
+
+            if (prodData && prodData.id) {
+                await db.from('movimientos_stock').insert([{
+                    producto_id: prodData.id,
+                    tipo: 'salida',
+                    cantidad: item.cantidad,
+                    motivo: `Venta ${currentSaleNumber} - Cliente: ${clientName || 'Walk-In'}`,
+                    created_at: new Date().toISOString()
+                }]);
+            }
+        }
+    } catch (error) {
+        console.error('Error creando movimientos:', error);
+    }
+}
+
+/* ============================================
+   MOSTRAR SECCIÓN DE PAGO QR
+   ============================================ */
+function mostrarSeccionPagoQR(total) {
+    const qrSection = document.getElementById('qrPaymentSection');
+    const qrTotal = document.getElementById('qrTotalAmount');
+    const yapeInfo = document.getElementById('yapeInfo');
+    const plinInfo = document.getElementById('plinInfo');
+    const yapeNum = document.getElementById('yapeNumber');
+    const yapeTit = document.getElementById('yapeTitular');
+    const plinNum = document.getElementById('plinNumber');
+    const plinTit = document.getElementById('plinTitular');
+
+    if (!qrSection) return;
+
+    let hayQR = false;
+
+    if (configPago.qr_enabled !== false) {
+        if (configPago.yape_numero) {
+            if (yapeInfo) yapeInfo.style.display = 'block';
+            if (yapeNum) yapeNum.textContent = configPago.yape_numero;
+            if (yapeTit) yapeTit.textContent = configPago.yape_titular || '';
+            hayQR = true;
+        } else {
+            if (yapeInfo) yapeInfo.style.display = 'none';
+        }
+
+        if (configPago.plin_numero) {
+            if (plinInfo) plinInfo.style.display = 'block';
+            if (plinNum) plinNum.textContent = configPago.plin_numero;
+            if (plinTit) plinTit.textContent = configPago.plin_titular || '';
+            hayQR = true;
+        } else {
+            if (plinInfo) plinInfo.style.display = 'none';
+        }
+    }
+
+    if (hayQR) {
+        qrSection.style.display = 'block';
+        if (qrTotal) qrTotal.textContent = total.toFixed(2);
+    } else {
+        qrSection.style.display = 'none';
     }
 }
 
@@ -1513,8 +1596,30 @@ async function cargarConfigDesdeQuiosco() {
                 });
             }
         }
+
+        // Cargar config de pagos QR
+        await cargarConfigPagoQuiosco();
+
     } catch (error) {
         console.log('Error cargando config:', error.message);
+    }
+}
+
+async function cargarConfigPagoQuiosco() {
+    try {
+        const { data, error } = await db
+            .from('config_pagos')
+            .select('*')
+            .single();
+        if (error) {
+            console.log('No hay config de pagos QR');
+            return;
+        }
+        if (data) {
+            configPago = data;
+        }
+    } catch (error) {
+        console.log('Error cargando config pagos:', error.message);
     }
 }
 
